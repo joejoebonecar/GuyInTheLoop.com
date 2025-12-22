@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Guy In The Loop</title>
+  <meta name="description" content="Low noise. High signal. Quiet refusal." />
+  <style>
+    :root{
+      --bg:#020402;
+      --fg:#b7ffb7;
+      --dim:rgba(183,255,183,.72);
+      --line:rgba(183,255,183,.18);
+      --card:rgba(0,0,0,.48);
+      --glow:rgba(90,255,110,.22);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:
+        radial-gradient(900px 540px at 50% 18%, rgba(90,255,110,.10), transparent 60%),
+        radial-gradient(900px 640px at 50% 120%, rgba(90,255,110,.08), transparent 62%),
+        linear-gradient(180deg, rgba(0,0,0,.0), rgba(0,0,0,.35)),
+        var(--bg);
+      color:var(--fg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      letter-spacing: 0.01em;
+    }
+    /* scanlines */
+    body:before{
+      content:"";
+      position:fixed; inset:0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.00),
+        rgba(0,0,0,0.00) 2px,
+        rgba(0,0,0,0.18) 3px
+      );
+      pointer-events:none;
+      mix-blend-mode:multiply;
+      opacity:.33;
+    }
+    /* subtle CRT flicker */
+    body:after{
+      content:"";
+      position:fixed; inset:0;
+      background: radial-gradient(circle at 50% 35%, rgba(90,255,110,.08), transparent 55%);
+      pointer-events:none;
+      opacity:.08;
+      animation:flicker 6.5s infinite;
+    }
+    @keyframes flicker{
+      0%,100%{opacity:.08; filter:brightness(1)}
+      48%{opacity:.06; filter:brightness(0.98)}
+      50%{opacity:.10; filter:brightness(1.03)}
+      52%{opacity:.07; filter:brightness(0.99)}
+      70%{opacity:.09; filter:brightness(1.01)}
+    }
+
+    .stage{
+      min-height:100%;
+      display:grid;
+      place-items:center;
+      padding: 56px 18px;
+    }
+    .grid{
+      width:min(980px, 100%);
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+      align-items:center;
+      justify-items:center;
+    }
+
+    .terminal{
+      width: min(860px, 100%);
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow:
+        0 0 0 1px rgba(90,255,110,.05) inset,
+        0 18px 60px rgba(0,0,0,.65);
+      overflow:hidden;
+    }
+    .bar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 14px;
+      padding: 14px 18px;
+      border-bottom: 1px dashed var(--line);
+      background: rgba(0,0,0,.35);
+    }
+    .dots{display:flex; gap:8px; align-items:center}
+    .dot{
+      width:10px;height:10px;border-radius:999px;
+      border:1px solid var(--line);
+      box-shadow: 0 0 18px var(--glow);
+      opacity:.9;
+    }
+    .title{
+      font-size: 12px;
+      color: var(--dim);
+      opacity:.95;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .boot{
+      padding: 16px 18px 6px;
+      color: var(--dim);
+      font-size: 13px;
+      line-height: 1.55;
+      white-space: pre-line;
+      min-height: 140px;
+      opacity:0;
+      animation: bootIn .35s ease forwards;
+    }
+    @keyframes bootIn{to{opacity:1}}
+    .boot .line{
+      opacity:0;
+      transform: translateY(2px);
+      animation: lineIn .22s ease forwards;
+    }
+    @keyframes lineIn{to{opacity:1; transform:none}}
+    .boot .line:nth-child(1){animation-delay:.10s}
+    .boot .line:nth-child(2){animation-delay:.22s}
+    .boot .line:nth-child(3){animation-delay:.34s}
+    .boot .line:nth-child(4){animation-delay:.46s}
+    .boot .line:nth-child(5){animation-delay:.58s}
+    .boot .line:nth-child(6){animation-delay:.70s}
+    .boot .line:nth-child(7){animation-delay:.82s}
+
+    .main{
+      padding: 18px;
+      border-top: 1px dashed var(--line);
+      opacity:0;
+      transform: translateY(6px);
+      animation: mainIn .45s ease forwards;
+      animation-delay: 1.05s;
+    }
+    @keyframes mainIn{to{opacity:1; transform:none}}
+
+    h1{
+      margin: 0 0 10px;
+      text-align:center;
+      font-size: 34px;
+      letter-spacing: -0.01em;
+      text-shadow: 0 0 18px var(--glow);
+    }
+    .sub{
+      margin: 0 0 18px;
+      text-align:center;
+      font-size: 13px;
+      color: var(--dim);
+    }
+
+    .block{
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      background: rgba(0,0,0,.30);
+      box-shadow: 0 0 0 1px rgba(90,255,110,.04) inset;
+    }
+    p{
+      margin: 0 0 12px;
+      line-height: 1.65;
+      font-size: 15px;
+      color: var(--fg);
+      text-align:center;
+    }
+    p:last-child{margin-bottom:0}
+    .muted{color:var(--dim)}
+
+    .tags{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:10px;
+      margin-top:14px;
+    }
+    .tag{
+      font-size: 12px;
+      color: var(--dim);
+      border: 1px solid var(--line);
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.22);
+    }
+
+    .status{
+      margin-top: 14px;
+      text-align:center;
+      font-size: 13px;
+      color: var(--dim);
+      white-space: pre-line;
+      line-height: 1.55;
+    }
+
+    .cursor{
+      display:inline-block;
+      width: 9px;
+      height: 16px;
+      background: rgba(90,255,110,.75);
+      margin-left: 6px;
+      vertical-align: -2px;
+      box-shadow: 0 0 18px var(--glow);
+      animation: blink 1.05s steps(1,end) infinite;
+    }
+    @keyframes blink{ 50%{opacity:0} }
+
+    @media (max-width:520px){
+      h1{font-size:28px}
+      p{font-size:14px}
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="grid">
+      <div class="terminal">
+        <div class="bar">
+          <div class="dots" aria-hidden="true">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </div>
+          <div class="title">guyintheloop.com — observatory</div>
+        </div>
+
+        <div class="boot" aria-label="boot log">
+          <div class="line">[BOOT] initializing interface…</div>
+          <div class="line">[CHK ] curiosity: present</div>
+          <div class="line">[CHK ] certainty: optional</div>
+          <div class="line">[NET ] signal acquisition: in progress</div>
+          <div class="line">[SYS ] norms: examined (not adopted by default)</div>
+          <div class="line">[SAFE] humility lock: engaged</div>
+          <div class="line">[OK  ] continue ▸</div>
+        </div>
+
+        <div class="main">
+          <h1>GUY IN THE LOOP<span class="cursor" aria-hidden="true"></span></h1>
+          <div class="sub">low noise · high signal · open loop</div>
+
+          <div class="block">
+            <p>
+              A quiet corner for people who like systems — and also like asking
+              why those systems keep turning into cages.
+            </p>
+            <p class="muted">
+              I build small experiments around LLMs and automation.
+              Not to “win” the future — just to make it less manipulative.
+            </p>
+          </div>
+
+          <div class="tags" aria-label="topics">
+            <span class="tag">llms</span>
+            <span class="tag">ai systems</span>
+            <span class="tag">automation</span>
+            <span class="tag">sensemaking</span>
+            <span class="tag">anti-bullshit engineering</span>
+          </div>
+
+          <div class="status" aria-label="status">
+status: quiet build
+signal: intermittent
+output: soon (when it behaves)
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
