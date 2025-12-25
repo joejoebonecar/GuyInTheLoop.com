@@ -1,3 +1,4 @@
+```html
 <!doctype html>
 <html lang="en">
 <head>
@@ -13,12 +14,22 @@
       --line:rgba(183,255,183,.18);
       --card:rgba(0,0,0,.48);
       --glow:rgba(90,255,110,.22);
+      
+      /* NEW: 80s palette injection */
+      --cyan:#00ffff;
+      --magenta:#ff00ff;
+      --hotpink:#ff1493;
+      --amber:#ffbf00;
+      --neon-blue:#4d4dff;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0;
       background:
+        /* 80s grid overlay */
+        repeating-linear-gradient(0deg, transparent, transparent 49px, rgba(0,255,255,.04) 50px),
+        repeating-linear-gradient(90deg, transparent, transparent 49px, rgba(255,0,255,.04) 50px),
         radial-gradient(900px 540px at 50% 18%, rgba(90,255,110,.10), transparent 60%),
         radial-gradient(900px 640px at 50% 120%, rgba(90,255,110,.08), transparent 62%),
         linear-gradient(180deg, rgba(0,0,0,.0), rgba(0,0,0,.35)),
@@ -41,11 +52,13 @@
       mix-blend-mode:multiply;
       opacity:.33;
     }
-    /* subtle CRT flicker */
+    /* CRT flicker + chromatic aberration hint */
     body:after{
       content:"";
       position:fixed; inset:0;
-      background: radial-gradient(circle at 50% 35%, rgba(90,255,110,.08), transparent 55%);
+      background: 
+        radial-gradient(circle at 50% 35%, rgba(0,255,255,.03), transparent 55%),
+        radial-gradient(circle at 50% 35%, rgba(90,255,110,.08), transparent 55%);
       pointer-events:none;
       opacity:.08;
       animation:flicker 6.5s infinite;
@@ -63,7 +76,44 @@
       display:grid;
       place-items:center;
       padding: 56px 18px;
+      position:relative;
     }
+    
+    /* NEW: floating 80s geometric shapes */
+    .retro-shape{
+      position:absolute;
+      border:2px solid;
+      opacity:.15;
+      pointer-events:none;
+      animation: float 8s ease-in-out infinite;
+    }
+    .shape-1{
+      top:12%; left:8%;
+      width:60px; height:60px;
+      border-color: var(--cyan);
+      transform: rotate(45deg);
+    }
+    .shape-2{
+      top:68%; right:12%;
+      width:80px; height:80px;
+      border-color: var(--magenta);
+      border-radius:50%;
+      animation-delay:-2s;
+    }
+    .shape-3{
+      bottom:15%; left:15%;
+      width:0; height:0;
+      border-left:40px solid transparent;
+      border-right:40px solid transparent;
+      border-bottom:70px solid var(--hotpink);
+      opacity:.12;
+      animation-delay:-4s;
+    }
+    @keyframes float{
+      0%,100%{transform:translateY(0px) rotate(0deg)}
+      50%{transform:translateY(-20px) rotate(10deg)}
+    }
+
     .grid{
       width:min(980px, 100%);
       display:grid;
@@ -80,15 +130,40 @@
       border-radius: 14px;
       box-shadow:
         0 0 0 1px rgba(90,255,110,.05) inset,
+        0 0 40px rgba(0,255,255,.08),
         0 18px 60px rgba(0,0,0,.65);
       overflow:hidden;
+      position:relative;
     }
+    
+    /* NEW: "UNDER CONSTRUCTION" stripe */
+    .terminal:before{
+      content:"⚠ SYSTEM UPDATE IN PROGRESS ⚠";
+      position:absolute;
+      top:0; left:0; right:0;
+      background: repeating-linear-gradient(
+        45deg,
+        rgba(255,191,0,.15),
+        rgba(255,191,0,.15) 10px,
+        rgba(0,0,0,.25) 10px,
+        rgba(0,0,0,.25) 20px
+      );
+      text-align:center;
+      font-size:10px;
+      color:var(--amber);
+      padding:4px 0;
+      border-bottom:1px solid rgba(255,191,0,.3);
+      letter-spacing:.05em;
+      z-index:10;
+    }
+
     .bar{
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap: 14px;
       padding: 14px 18px;
+      padding-top:28px; /* space for construction banner */
       border-bottom: 1px dashed var(--line);
       background: rgba(0,0,0,.35);
     }
@@ -132,6 +207,12 @@
     .boot .line:nth-child(5){animation-delay:.58s}
     .boot .line:nth-child(6){animation-delay:.70s}
     .boot .line:nth-child(7){animation-delay:.82s}
+    
+    /* NEW: 80s injection into boot text */
+    .boot .retro-inject{
+      color: var(--cyan);
+      text-shadow: 0 0 8px var(--cyan);
+    }
 
     .main{
       padding: 18px;
@@ -149,7 +230,30 @@
       font-size: 34px;
       letter-spacing: -0.01em;
       text-shadow: 0 0 18px var(--glow);
+      position:relative;
     }
+    
+    /* NEW: glitchy "TURBO" badge overlay */
+    h1:after{
+      content:"◢TURBO◣";
+      position:absolute;
+      top:-8px; right:calc(50% - 180px);
+      font-size:11px;
+      color:var(--hotpink);
+      border:1px solid var(--hotpink);
+      padding:2px 6px;
+      border-radius:3px;
+      background:rgba(255,20,147,.08);
+      text-shadow: 0 0 12px var(--hotpink);
+      animation: glitchBadge 3s infinite;
+    }
+    @keyframes glitchBadge{
+      0%,90%,100%{opacity:1; transform:none}
+      91%{opacity:0; transform:translate(2px,-1px)}
+      93%{opacity:1; transform:translate(-1px,1px)}
+      95%{opacity:1; transform:none}
+    }
+    
     .sub{
       margin: 0 0 18px;
       text-align:center;
@@ -163,7 +267,24 @@
       padding: 16px;
       background: rgba(0,0,0,.30);
       box-shadow: 0 0 0 1px rgba(90,255,110,.04) inset;
+      position:relative;
     }
+    
+    /* NEW: partial neon accent on block */
+    .block:before{
+      content:"";
+      position:absolute;
+      top:-1px; left:20%;
+      width:60%;
+      height:2px;
+      background: linear-gradient(90deg, 
+        transparent, 
+        var(--cyan) 30%, 
+        var(--magenta) 70%, 
+        transparent);
+      opacity:.4;
+    }
+    
     p{
       margin: 0 0 12px;
       line-height: 1.65;
@@ -173,6 +294,13 @@
     }
     p:last-child{margin-bottom:0}
     .muted{color:var(--dim)}
+    
+    /* NEW: 80s hype text injection */
+    .hype{
+      color:var(--cyan);
+      text-shadow: 0 0 6px var(--cyan);
+      font-weight:600;
+    }
 
     .tags{
       display:flex;
@@ -188,6 +316,18 @@
       padding: 5px 9px;
       border-radius: 999px;
       background: rgba(0,0,0,.22);
+      transition: all .2s;
+    }
+    /* NEW: some tags get 80s treatment */
+    .tag.retro{
+      color: var(--cyan);
+      border-color: var(--cyan);
+      background: rgba(0,255,255,.08);
+      text-shadow: 0 0 6px var(--cyan);
+    }
+    .tag.retro:hover{
+      background: rgba(0,255,255,.15);
+      box-shadow: 0 0 12px rgba(0,255,255,.3);
     }
 
     .status{
@@ -197,6 +337,24 @@
       color: var(--dim);
       white-space: pre-line;
       line-height: 1.55;
+    }
+    
+    /* NEW: radical update notice */
+    .update-notice{
+      margin-top:18px;
+      text-align:center;
+      font-size:11px;
+      color:var(--amber);
+      padding:8px 12px;
+      border:1px dashed rgba(255,191,0,.3);
+      border-radius:8px;
+      background:rgba(255,191,0,.05);
+      font-family: "Courier New", monospace;
+      letter-spacing:.02em;
+    }
+    .update-notice strong{
+      color:var(--hotpink);
+      text-shadow: 0 0 8px var(--hotpink);
     }
 
     .cursor{
@@ -213,11 +371,12 @@
 
     @media (max-width:520px){
       h1{font-size:28px}
+      h1:after{right:10px; top:-6px}
       p{font-size:14px}
     }
 
     /* ===========================
-       RNG SPLASH OVERLAY (NEW)
+       RNG SPLASH OVERLAY
        =========================== */
     #splashOverlay{
       position:fixed;
@@ -308,7 +467,12 @@
 </head>
 <body>
 
-  <!-- RNG SPLASH OVERLAY (NEW) -->
+  <!-- Floating 80s shapes -->
+  <div class="retro-shape shape-1"></div>
+  <div class="retro-shape shape-2"></div>
+  <div class="retro-shape shape-3"></div>
+
+  <!-- RNG SPLASH OVERLAY -->
   <div id="splashOverlay" aria-live="polite" aria-label="Intro screen">
     <div class="splashPanel">
       <div class="splashBar">
@@ -330,13 +494,14 @@
           <div class="dots" aria-hidden="true">
             <span class="dot"></span><span class="dot"></span><span class="dot"></span>
           </div>
-          <div class="title">guyintheloop.com — observatory</div>
+          <div class="title">guyintheloop.com — observatory.v2.RADICAL</div>
         </div>
 
         <div class="boot" aria-label="boot log">
           <div class="line">[BOOT] initializing interface…</div>
           <div class="line">[CHK ] curiosity: present</div>
           <div class="line">[CHK ] certainty: optional</div>
+          <div class="line retro-inject">[80s ] N E O N: loading…</div>
           <div class="line">[NET ] signal acquisition: in progress</div>
           <div class="line">[SYS ] norms: examined (not adopted by default)</div>
           <div class="line">[SAFE] humility lock: engaged</div>
@@ -345,7 +510,7 @@
 
         <div class="main">
           <h1>GUY IN THE LOOP<span class="cursor" aria-hidden="true"></span></h1>
-          <div class="sub">low noise · high signal · open loop</div>
+          <div class="sub">low noise · high signal · <span class="hype">MAXIMUM OVERDRIVE</span></div>
 
           <div class="block">
             <p>
@@ -354,16 +519,16 @@
             </p>
             <p class="muted">
               I build small experiments around LLMs and automation.
-              Not to “win” the future — just to make it less manipulative.
+              Not to "win" the future — just to make it <span class="hype">38% MORE RADICAL</span>.
             </p>
           </div>
 
           <div class="tags" aria-label="topics">
-            <span class="tag">llms</span>
+            <span class="tag retro">llms</span>
             <span class="tag">ai systems</span>
-            <span class="tag">automation</span>
+            <span class="tag retro">automation</span>
             <span class="tag">sensemaking</span>
-            <span class="tag">anti-bullshit engineering</span>
+            <span class="tag retro">anti-bullshit engineering</span>
           </div>
 
           <div class="status" aria-label="status">
@@ -371,12 +536,18 @@ status: quiet build
 signal: intermittent
 output: soon (when it behaves)
           </div>
+          
+          <div class="update-notice">
+            ⚡ <strong>SYSTEM MIGRATION ACTIVE</strong> ⚡<br>
+            Converting terminal minimalism → CyberDad™ Aesthetic<br>
+            Progress: 47% | ETA: when the vibes align
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- RNG SPLASH SCRIPT (NEW) -->
+  <!-- RNG SPLASH SCRIPT -->
   <script>
     (function () {
       const overlay = document.getElementById("splashOverlay");
@@ -386,21 +557,20 @@ output: soon (when it behaves)
       const timerEl = document.getElementById("splashTimer");
       const skipBtn = document.getElementById("splashSkip");
 
-      // Config you’ll actually care about:
-      const DURATION_MS = 2400;                 // how long the intro stays up
-      const SHOW_ONCE_PER_TAB = true;           // set false to show every refresh
-      const SEEN_KEY = "gitl_splash_seen";
+      // Config
+      const DURATION_MS = 2400;
+      const TOTAL_INTERRUPTS = 4;
+      const INTERRUPT_WINDOW_MS = 20000;
 
-      const alreadySeen = SHOW_ONCE_PER_TAB && sessionStorage.getItem(SEEN_KEY) === "1";
+      let interruptCount = 0;
+      let interruptTimeouts = [];
 
-      // Variants with weights (fake-404 is rarer on purpose)
       const variants = [
         {
-          weight: 6,
           title: "SHIP LOG // DAD SECTOR 7",
           tag: "sci-fi-dad",
           body:
-`Captain’s Note:
+`Captain's Note:
 The universe remains indifferent.
 The kids remain hungry.
 I remain in the loop.
@@ -414,7 +584,6 @@ STATUS:
 Redirecting you to the real site before someone asks for a snack…`
         },
         {
-          weight: 3,
           title: "guyintheloop :: boot sequence",
           tag: "1337",
           body:
@@ -428,7 +597,6 @@ w3lc0m3 2 th3 l00p
 handoff -> real site in 3… 2…`
         },
         {
-          weight: 1,
           title: "404: SITE WAS HERE A SECOND AGO",
           tag: "false-404",
           body:
@@ -443,6 +611,95 @@ Possible causes:
 
 Anyway… fake 404.
 Stand by for the real site.`
+        },
+        {
+          title: "⟨⟨ TRON.LEGACY.BREACH ⟩⟩",
+          tag: "gridrunner",
+          body:
+`█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
+█  UNAUTHORIZED LIGHTCYCLE  █
+█      DETECTED IN GRID     █
+█▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+
+USER: guy_the_loop
+CLEARANCE: Dad.Level.5
+MISSION: Build stuff kids won't get
+
+>> Derezzing back to realspace...
+>> Stand by for portal sync...`
+        },
+        {
+          title: "BBS.DIALUP.1989 [2400 BAUD]",
+          tag: "retro-modem",
+          body:
+`╔═══════════════════════════╗
+║  WELCOME TO THOUGHTNET    ║
+║  >> Dad's Personal Node   ║
+╚═══════════════════════════╝
+
+ATDT... CARRIER DETECTED
+CONNECT 2400
+
+SysOp Note: Coffee low. Signal high.
+Building tools for humans who ask "why?"
+
+[F1] Continue  [F10] Logoff
+
+>>> Connection stable. Loading site...`
+        },
+        {
+          title: "CYBERSPACE.CONSTRUCT [GIBSON.v1]",
+          tag: "neuromancer",
+          body:
+`The matrix has its roots in primitive
+arcade games...
+
+CONSOLE COWBOYS IN TEXAS
+- Running ice on corp datastores
+- Jacking in through terminal windows
+- Making sense of the sprawl
+
+STATUS: Deck hot. Coffee cold.
+MISSION: Liberation through automation.
+
+Punching through to meatspace in 5...4...`
+        },
+        {
+          title: "⚡ MAX HEADROOM INTERRUPT ⚡",
+          tag: "m-m-max",
+          body:
+`B-b-b-broadcasting from the 
+REDUNDANT-REDUNDANT future!
+
+I'm here to t-t-tell you that—
+[SIGNAL GLITCH]
+—your SYSTEMS are showing—
+[SIGNAL GLITCH]  
+—and somebody n-n-noticed!
+
+This site? Built by a dad.
+For dads. And non-dads. Anyone really.
+As long as you QUESTION THE FEED.
+
+[TRANSMISSION RESTORING...]`
+        },
+        {
+          title: "◢◤ ARCADE.INSERT.COIN ◢◤",
+          tag: "high-score",
+          body:
+`▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+  ★ TOP SCORES - DAD EDITION ★
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+
+1st .... GUY ....... 999,999
+2nd .... REALITY .... 12,003  
+3rd .... SLEEP ....... LOLOLOL
+
+CONTINUE? [Y/N]
+
+>>> Y selected
+>>> Loading actual website...
+>>> GAME START!`
         }
       ];
 
@@ -455,14 +712,35 @@ Stand by for the real site.`
         return Math.floor(Math.random() * maxExclusive);
       }
 
-      function pickWeighted(items) {
-        const total = items.reduce((sum, it) => sum + (it.weight || 1), 0);
-        let r = cryptoRandInt(total);
-        for (const it of items) {
-          r -= (it.weight || 1);
-          if (r < 0) return it;
-        }
-        return items[0];
+      function pickRandom(items) {
+        return items[cryptoRandInt(items.length)];
+      }
+
+      function showSplash(variant, duration) {
+        titleEl.textContent = variant.title;
+        tagEl.textContent = variant.tag;
+        bodyEl.textContent = variant.body;
+
+        overlay.classList.remove("fade-out");
+        overlay.style.display = "grid";
+        overlay.style.opacity = "1";
+
+        let t = Math.max(1, Math.ceil(duration / 1000));
+        timerEl.textContent = `Entering reality in ${t}s…`;
+
+        const tick = setInterval(() => {
+          t -= 1;
+          if (t <= 0) {
+            clearInterval(tick);
+            timerEl.textContent = "Entering reality now…";
+          } else {
+            timerEl.textContent = `Entering reality in ${t}s…`;
+          }
+        }, 1000);
+
+        setTimeout(() => {
+          hideOverlay();
+        }, duration);
       }
 
       function hideOverlay() {
@@ -470,51 +748,47 @@ Stand by for the real site.`
         setTimeout(() => { overlay.style.display = "none"; }, 450);
       }
 
-      function markSeen() {
-        if (SHOW_ONCE_PER_TAB) sessionStorage.setItem(SEEN_KEY, "1");
+      function scheduleInterrupts() {
+        const times = [];
+        for (let i = 0; i < TOTAL_INTERRUPTS; i++) {
+          times.push(cryptoRandInt(INTERRUPT_WINDOW_MS));
+        }
+        times.sort((a, b) => a - b);
+
+        times.forEach(delay => {
+          const timeout = setTimeout(() => {
+            if (interruptCount < TOTAL_INTERRUPTS) {
+              const v = pickRandom(variants);
+              showSplash(v, DURATION_MS);
+              interruptCount++;
+            }
+          }, delay);
+          interruptTimeouts.push(timeout);
+        });
       }
 
       skipBtn.addEventListener("click", () => {
-        markSeen();
         hideOverlay();
+        interruptTimeouts.forEach(t => clearTimeout(t));
+        interruptTimeouts = [];
       });
 
-      // Optional: click anywhere on overlay to skip (feels nice)
       overlay.addEventListener("click", (e) => {
-        // Don’t double-trigger when clicking the button
         if (e.target === skipBtn) return;
-        markSeen();
         hideOverlay();
+        interruptTimeouts.forEach(t => clearTimeout(t));
+        interruptTimeouts = [];
       });
 
-      if (alreadySeen) {
-        overlay.style.display = "none";
-        return;
-      }
-
-      const v = pickWeighted(variants);
-      titleEl.textContent = v.title;
-      tagEl.textContent = v.tag;
-      bodyEl.textContent = v.body;
-
-      let t = Math.max(1, Math.ceil(DURATION_MS / 1000));
-      timerEl.textContent = `Entering reality in ${t}s…`;
-
-      const tick = setInterval(() => {
-        t -= 1;
-        if (t <= 0) {
-          clearInterval(tick);
-          timerEl.textContent = "Entering reality now…";
-        } else {
-          timerEl.textContent = `Entering reality in ${t}s…`;
-        }
-      }, 1000);
+      const initialVariant = pickRandom(variants);
+      showSplash(initialVariant, DURATION_MS);
 
       setTimeout(() => {
-        markSeen();
-        hideOverlay();
-      }, DURATION_MS);
+        scheduleInterrupts();
+      }, DURATION_MS + 500);
+
     })();
   </script>
 </body>
 </html>
+```
