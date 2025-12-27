@@ -1,0 +1,1915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Mancala - Cherry Blossom</title>
+  <style>
+    :root {
+      --bg: #fff5f7;
+      --fg: #d4738c;
+      --dim: rgba(212, 115, 140, 0.7);
+      --line: rgba(255, 182, 193, 0.3);
+      --card: rgba(255, 240, 245, 0.9);
+      --glow: rgba(255, 182, 193, 0.4);
+      --accent: #ffb7c5;
+      --warm: #ffd4e5;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 20% 30%, rgba(255, 183, 197, 0.15), transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(255, 212, 229, 0.15), transparent 40%),
+        linear-gradient(135deg, #fff8fa 0%, #ffe8f0 50%, #fff5f7 100%);
+      color: var(--fg);
+      font-family: 'Noto Sans JP', 'Hiragino Sans', system-ui, -apple-system, sans-serif;
+      letter-spacing: 0.01em;
+    }
+
+    #gameContainer {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #canvas3d {
+      flex: 1;
+      display: block;
+      background: var(--bg);
+    }
+
+    #ui {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    #topBar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 16px 20px;
+      background: rgba(255, 240, 245, 0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .score-display {
+      font-size: 16px;
+      color: var(--fg);
+      transition: transform 0.3s ease;
+    }
+
+    .score-display.highlight {
+      color: var(--fg);
+      font-weight: 600;
+      animation: gentlePulse 0.5s ease;
+    }
+
+    @keyframes gentlePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .btn {
+      font: inherit;
+      color: var(--fg);
+      background: rgba(255, 240, 245, 0.9);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 18px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      pointer-events: auto;
+      box-shadow: 0 2px 8px rgba(255, 183, 197, 0.2);
+    }
+
+    .btn:hover {
+      border-color: var(--accent);
+      background: var(--warm);
+      box-shadow: 0 4px 12px rgba(255, 183, 197, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    #statusBar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 20px;
+      background: rgba(255, 240, 245, 0.85);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--line);
+      text-align: center;
+    }
+
+    #turnIndicator {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      min-height: 28px;
+      color: var(--fg);
+    }
+
+    #moveHint {
+      font-size: 13px;
+      color: var(--dim);
+      min-height: 20px;
+    }
+
+    #notification {
+      position: absolute;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 2px solid var(--accent);
+      border-radius: 16px;
+      padding: 18px 28px;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--fg);
+      box-shadow: 0 8px 24px rgba(255, 183, 197, 0.3);
+      display: none;
+      pointer-events: none;
+      z-index: 200;
+    }
+
+    #notification.show {
+      display: block;
+      animation: notificationBounce 0.5s ease-out;
+    }
+
+    @keyframes notificationBounce {
+      0% { transform: translateX(-50%) scale(0.8); opacity: 0; }
+      50% { transform: translateX(-50%) scale(1.05); }
+      100% { transform: translateX(-50%) scale(1); opacity: 1; }
+    }
+
+    #skipButton {
+      position: absolute;
+      bottom: 100px;
+      right: 20px;
+      display: none;
+      pointer-events: auto;
+    }
+
+    #skipButton.show {
+      display: block;
+      animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Overlays */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      pointer-events: auto;
+      padding: 20px;
+    }
+
+    .overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow:
+        0 0 0 1px rgba(90, 255, 110, 0.05) inset,
+        0 20px 60px rgba(0, 0, 0, 0.9);
+      overflow: hidden;
+    }
+
+    .modal-header {
+      padding: 16px 20px;
+      background: rgba(0, 0, 0, 0.5);
+      border-bottom: 1px solid var(--line);
+      font-size: 18px;
+      font-weight: bold;
+      text-shadow: 0 0 12px var(--glow);
+    }
+
+    .modal-body {
+      padding: 24px 20px;
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--dim);
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .modal-body h3 {
+      color: var(--fg);
+      margin: 20px 0 10px;
+      font-size: 16px;
+    }
+
+    .modal-body h3:first-child {
+      margin-top: 0;
+    }
+
+    .modal-body ul {
+      margin: 10px 0 10px 20px;
+    }
+
+    .modal-body li {
+      margin: 6px 0;
+    }
+
+    .modal-footer {
+      padding: 16px 20px;
+      background: rgba(0, 0, 0, 0.5);
+      border-top: 1px solid var(--line);
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 16px 0;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .checkbox-label input {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    #aiThinkingBar {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px 20px;
+      display: none;
+      pointer-events: none;
+    }
+
+    #aiThinkingBar.active {
+      display: block;
+    }
+
+    .thinking-text {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar {
+      width: 200px;
+      height: 6px;
+      background: rgba(183, 255, 183, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--fg);
+      width: 0%;
+      animation: progress 1.5s ease-in-out infinite;
+      box-shadow: 0 0 8px var(--glow);
+    }
+
+    @keyframes progress {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+
+    .settings-group {
+      margin: 20px 0;
+    }
+
+    .settings-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: var(--fg);
+    }
+
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      height: 4px;
+      background: rgba(183, 255, 183, 0.2);
+      border-radius: 2px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      background: var(--fg);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 8px var(--glow);
+    }
+
+    .slider-value {
+      font-size: 13px;
+      min-width: 40px;
+      text-align: right;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 16px;
+      margin: 12px 0;
+    }
+
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .radio-label input {
+      cursor: pointer;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    .stat-item {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--dim);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--fg);
+      text-shadow: 0 0 8px var(--glow);
+    }
+
+    @media (max-width: 768px) {
+      #topBar {
+        flex-direction: column;
+        padding: 12px;
+        gap: 12px;
+      }
+
+      .score-display {
+        font-size: 14px;
+      }
+
+      .btn {
+        padding: 10px 16px;
+        font-size: 14px;
+      }
+
+      #statusBar {
+        padding: 16px 12px;
+      }
+
+      #turnIndicator {
+        font-size: 16px;
+      }
+
+      .modal {
+        max-width: 95%;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 14px;
+      background: var(--fg);
+      margin-left: 4px;
+      vertical-align: -2px;
+      box-shadow: 0 0 8px var(--glow);
+      animation: blink 1s steps(1) infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div id="gameContainer">
+    <canvas id="canvas3d"></canvas>
+  </div>
+
+  <div id="ui">
+    <div id="topBar">
+      <div class="score-display">
+        <span id="playerScore">YOU: 0</span>
+        <span style="margin: 0 16px; opacity: 0.5;">|</span>
+        <span id="aiScore">AI: 0</span>
+      </div>
+      <div style="display: flex; gap: 12px;">
+        <button class="btn" onclick="showRules()">HOW TO PLAY</button>
+        <button class="btn" onclick="showSettings()">SETTINGS</button>
+        <button class="btn" onclick="newGame()">NEW GAME</button>
+      </div>
+    </div>
+
+    <div id="statusBar">
+      <div id="turnIndicator"></div>
+      <div id="moveHint"></div>
+    </div>
+
+    <div id="notification"></div>
+    <button id="skipButton" class="btn" onclick="skipAnimation()">SKIP ANIMATION ⏭</button>
+
+    <div id="aiThinkingBar">
+      <div class="thinking-text">AI CALCULATING MOVE<span class="cursor"></span></div>
+      <div class="progress-bar">
+        <div class="progress-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- How to Play Overlay -->
+  <div id="rulesOverlay" class="overlay">
+    <div class="modal">
+      <div class="modal-header">MANCALA :: GAME RULES</div>
+      <div class="modal-body">
+        <h3>OBJECTIVE</h3>
+        <p>Collect more stones in your store than your opponent.</p>
+
+        <h3>YOUR TURN</h3>
+        <ul>
+          <li>Click any pit on your side (bottom row) that contains stones</li>
+          <li>Stones are distributed counter-clockwise, one per pit</li>
+          <li>If your last stone lands in your STORE (right side), you get another turn</li>
+          <li>If your last stone lands in an EMPTY pit on your side, you capture that stone PLUS all stones in the opposite pit</li>
+        </ul>
+
+        <h3>GAME END</h3>
+        <p>The game ends when one side has no stones left. The player with stones remaining captures them all. Count your stores - highest score wins!</p>
+
+        <h3>CONTROLS</h3>
+        <ul>
+          <li>Click/tap pits to make moves</li>
+          <li>Valid moves glow when it's your turn</li>
+          <li>Watch the status bar for hints and turn indicators</li>
+        </ul>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="dontShowRules" />
+          <span>Don't show this again</span>
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeRules()">START PLAYING</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Overlay -->
+  <div id="settingsOverlay" class="overlay">
+    <div class="modal">
+      <div class="modal-header">SETTINGS</div>
+      <div class="modal-body">
+        <div class="settings-group">
+          <label>AI DIFFICULTY</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="difficulty" value="easy" />
+              <span>EASY</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="difficulty" value="medium" checked />
+              <span>MEDIUM</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="difficulty" value="hard" />
+              <span>HARD</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <label>SOUND VOLUME</label>
+          <div class="slider-container">
+            <input type="range" id="volumeSlider" min="0" max="100" value="70" oninput="updateVolume(this.value)" />
+            <span class="slider-value" id="volumeValue">70%</span>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="hintsToggle" checked onchange="toggleHints(this.checked)" />
+            <span>Show move hints (glowing pits)</span>
+          </label>
+        </div>
+
+        <div class="settings-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="soundToggle" checked onchange="toggleSound(this.checked)" />
+            <span>Enable sound effects</span>
+          </label>
+        </div>
+
+        <h3 style="margin-top: 24px;">YOUR STATS</h3>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-label">Personal Best</div>
+            <div class="stat-value" id="statBest">0</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Games Played</div>
+            <div class="stat-value" id="statGames">0</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Wins</div>
+            <div class="stat-value" id="statWins">0</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Win Rate</div>
+            <div class="stat-value" id="statWinRate">0%</div>
+          </div>
+        </div>
+
+        <button class="btn" onclick="resetStats()" style="margin-top: 16px; width: 100%;">RESET STATS</button>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeSettings()">CLOSE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Over Overlay -->
+  <div id="gameOverOverlay" class="overlay">
+    <div class="modal">
+      <div class="modal-header" id="gameOverTitle">GAME OVER</div>
+      <div class="modal-body" style="text-align: center;">
+        <div id="gameOverMessage" style="font-size: 18px; margin: 20px 0; color: var(--fg);"></div>
+        <div id="gameOverScore" style="font-size: 16px; margin: 16px 0;"></div>
+        <div id="gameOverStats" style="font-size: 14px; margin: 16px 0; opacity: 0.8;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeGameOver(); newGame();">PLAY AGAIN</button>
+        <button class="btn" onclick="closeGameOver(); showSettings();">CHANGE DIFFICULTY</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Three.js from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
+
+  <script>
+    // ============================================
+    // CONFIGURABLE PARAMETERS
+    // ============================================
+    const CONFIG = {
+      // Game Rules
+      PITS_PER_SIDE: 6,
+      INITIAL_STONES: 4,
+      PLAYER_STORE: 6,
+      AI_STORE: 13,
+
+      // Animation Settings
+      STONE_TRAVEL_DURATION: 400,      // ms for stone to travel between pits
+      DELAY_BETWEEN_STONES: 300,       // ms delay between dropping each stone
+      ARC_HEIGHT: 2.5,                 // height of arc trajectory
+
+      // Stone Visual Variation
+      STONE_SIZE_MIN: 0.18,
+      STONE_SIZE_MAX: 0.24,
+      STONE_COLOR_VARIATION: 0.15,     // 0-1, how much color varies
+
+      // Cherry Blossom Glow (replaces neon tubes)
+      SAKURA_GLOW_INTENSITY: 0.5,
+      SAKURA_GLOW_RANGE: 10,
+
+      // Wireframe
+      WIREFRAME_ENABLED: true,
+      WIREFRAME_LINE_WIDTH: 1,
+
+      // Japanese Cherry Blossom Color Palette
+      WOOD_BASE_COLOR: 0xf5e6d3,       // Light hinoki wood (pale blonde)
+      WOOD_GRAIN_COLOR: 0xd4c4b0,      // Subtle wood grain
+      WOOD_DARK_COLOR: 0xb8a895,       // Dark wood accents
+      ACCENT_COLOR: 0xffb7c5,          // Cherry blossom pink
+      SAKURA_PINK: 0xffd4e5,           // Pale sakura
+      SOFT_ROSE: 0xd4738c,             // Soft rose
+
+      // Natural Stone Colors
+      STONE_COLORS: [
+        0xc9b8a8,  // warm beige
+        0xd4c4b0,  // light tan
+        0xb8a895,  // darker sand
+        0xe8d8c8   // pale cream
+      ]
+    };
+
+    // ============================================
+    // GAME STATE
+    // ============================================
+    let gameState = {
+      board: Array(14).fill(CONFIG.INITIAL_STONES),
+      currentPlayer: 'human',
+      gameOver: false,
+      playerScore: 0,
+      aiScore: 0,
+      animating: false,
+      skipRequested: false
+    };
+
+    let settings = {
+      difficulty: 'medium',
+      volume: 0.7,
+      soundEnabled: true,
+      hintsEnabled: true,
+      showRules: true
+    };
+
+    let stats = {
+      gamesPlayed: 0,
+      wins: 0,
+      personalBest: 0
+    };
+
+    // ============================================
+    // THREE.JS SCENE SETUP
+    // ============================================
+    let scene, camera, renderer;
+    let boardMesh, pitMeshes = [], storeMeshes = [];
+    let stoneMeshes = [];
+    let neonTubes = [];
+    let animationClock;
+    let textSprites = []; // For stone count labels
+
+    function initThreeJS() {
+      // Scene - Light Japanese background
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xfff8fa);  // Pale pink wash
+      scene.fog = new THREE.Fog(0xfff5f7, 30, 60);   // Soft distant fog
+      animationClock = new THREE.Clock();
+
+      // Camera - Fixed 1280x720 aspect ratio
+      const aspect = 1280 / 720;
+      camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
+      camera.position.set(0, 12, 14);
+      camera.lookAt(0, 0, 0);
+
+      // Renderer - Fixed 1280x720 resolution
+      renderer = new THREE.WebGLRenderer({
+        canvas: document.getElementById('canvas3d'),
+        antialias: true
+      });
+      renderer.setSize(1280, 720);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+      // Soft Japanese Lighting (like paper lantern / shoji screen)
+      const ambientLight = new THREE.AmbientLight(0xfff8f0, 0.7);
+      scene.add(ambientLight);
+
+      // Hemisphere light (sky/ground bounce - warm Japanese aesthetic)
+      const hemiLight = new THREE.HemisphereLight(0xfff0f5, 0xffd4e5, 0.5);
+      scene.add(hemiLight);
+
+      // Main light (soft daylight through shoji screen)
+      const mainLight = new THREE.DirectionalLight(0xfff5e6, 0.6);
+      mainLight.position.set(3, 8, 5);
+      mainLight.castShadow = true;
+      mainLight.shadow.mapSize.width = 2048;
+      mainLight.shadow.mapSize.height = 2048;
+      mainLight.shadow.camera.near = 0.5;
+      mainLight.shadow.camera.far = 30;
+      mainLight.shadow.camera.left = -12;
+      mainLight.shadow.camera.right = 12;
+      mainLight.shadow.camera.top = 12;
+      mainLight.shadow.camera.bottom = -12;
+      mainLight.shadow.bias = -0.0005;
+      scene.add(mainLight);
+
+      // Fill light (cool reflected light)
+      const fillLight = new THREE.DirectionalLight(0xffe8f5, 0.35);
+      fillLight.position.set(-4, 4, -3);
+      scene.add(fillLight);
+
+      // Soft rim light for depth
+      const rimLight = new THREE.DirectionalLight(0xffd4e5, 0.25);
+      rimLight.position.set(0, 3, -8);
+      scene.add(rimLight);
+
+      // Create board
+      createBoard();
+      createSakuraGlow();
+
+      // Handle resize
+      window.addEventListener('resize', onWindowResize);
+
+      // Start animation loop
+      animate();
+    }
+
+    function createBoard() {
+      // Create wood grain texture
+      const woodTexture = createWoodGrainTexture();
+
+      // Board base with realistic wood grain
+      const boardGeometry = new THREE.BoxGeometry(14, 1, 7);
+      const boardMaterial = new THREE.MeshStandardMaterial({
+        map: woodTexture,
+        color: CONFIG.WOOD_BASE_COLOR,
+        roughness: 0.75,
+        metalness: 0.05,
+        envMapIntensity: 0.2
+      });
+
+      boardMesh = new THREE.Mesh(boardGeometry, boardMaterial);
+      boardMesh.position.y = -0.5;
+      boardMesh.receiveShadow = true;
+      boardMesh.castShadow = true;
+      scene.add(boardMesh);
+
+      // Board edges - wireframe
+      const edges = new THREE.EdgesGeometry(boardGeometry);
+      const edgeMaterial = new THREE.LineBasicMaterial({
+        color: CONFIG.WOOD_DARK_COLOR,
+        linewidth: 2
+      });
+      const boardEdges = new THREE.LineSegments(edges, edgeMaterial);
+      boardEdges.position.y = -0.5;
+      scene.add(boardEdges);
+
+      // Create pits (carved INTO the board)
+      const pitPositions = [];
+
+      // Player pits (bottom row) - left to right is 0-5
+      for (let i = 0; i < 6; i++) {
+        pitPositions.push({ x: -5 + i * 2, z: 2, index: i, isPlayer: true });
+      }
+
+      // AI pits (top row) - right to left is 7-12
+      for (let i = 0; i < 6; i++) {
+        pitPositions.push({ x: 5 - i * 2, z: -2, index: 7 + i, isPlayer: false });
+      }
+
+      pitPositions.forEach(pos => {
+        const pitGroup = createCarvedPit(pos.isPlayer, false, woodTexture);
+        pitGroup.position.set(pos.x, 0, pos.z);
+        pitGroup.userData = { type: 'pit', index: pos.index };
+        scene.add(pitGroup);
+        pitMeshes[pos.index] = pitGroup;
+      });
+
+      // Player store (right) - oval shaped, inside board boundaries
+      const playerStore = createCarvedPit(true, true, woodTexture);
+      playerStore.position.set(5.5, 0, 0);
+      playerStore.userData = { type: 'store', index: CONFIG.PLAYER_STORE };
+      scene.add(playerStore);
+      storeMeshes[0] = playerStore;
+
+      // AI store (left) - oval shaped, inside board boundaries
+      const aiStore = createCarvedPit(false, true, woodTexture);
+      aiStore.position.set(-5.5, 0, 0);
+      aiStore.userData = { type: 'store', index: CONFIG.AI_STORE };
+      scene.add(aiStore);
+      storeMeshes[1] = aiStore;
+    }
+
+    function createWoodGrainTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 2048;
+      canvas.height = 2048;
+      const ctx = canvas.getContext('2d');
+
+      // Light Japanese wood base (hinoki/sakura - pale blonde/honey)
+      const baseR = (CONFIG.WOOD_BASE_COLOR >> 16) & 255;
+      const baseG = (CONFIG.WOOD_BASE_COLOR >> 8) & 255;
+      const baseB = CONFIG.WOOD_BASE_COLOR & 255;
+
+      // Subtle grain colors
+      const grainR = (CONFIG.WOOD_GRAIN_COLOR >> 16) & 255;
+      const grainG = (CONFIG.WOOD_GRAIN_COLOR >> 8) & 255;
+      const grainB = CONFIG.WOOD_GRAIN_COLOR & 255;
+
+      const darkR = (CONFIG.WOOD_DARK_COLOR >> 16) & 255;
+      const darkG = (CONFIG.WOOD_DARK_COLOR >> 8) & 255;
+      const darkB = CONFIG.WOOD_DARK_COLOR & 255;
+
+      // Soft gradient base for light wood
+      const bgGradient = ctx.createLinearGradient(0, 0, 2048, 2048);
+      bgGradient.addColorStop(0, `rgb(${baseR + 6}, ${baseG + 6}, ${baseB + 4})`);
+      bgGradient.addColorStop(0.5, `rgb(${baseR}, ${baseG}, ${baseB})`);
+      bgGradient.addColorStop(1, `rgb(${baseR - 4}, ${baseG - 4}, ${baseB - 6})`);
+      ctx.fillStyle = bgGradient;
+      ctx.fillRect(0, 0, 2048, 2048);
+
+      // Fine wood pore texture (very subtle for light wood)
+      const imageData = ctx.getImageData(0, 0, 2048, 2048);
+      const data = imageData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        const noise = (Math.random() - 0.5) * 6;  // Softer noise for light wood
+        data[i] = Math.max(0, Math.min(255, data[i] + noise));
+        data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise));
+        data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise));
+      }
+      ctx.putImageData(imageData, 0, 0);
+
+      // Subtle grain lines (light wood has softer, more delicate grain)
+      for (let i = 0; i < 250; i++) {
+        const y = Math.random() * 2048;
+        const thickness = Math.random() * 1.5 + 0.3;
+        const alpha = 0.06 + Math.random() * 0.12;  // Much subtler
+
+        ctx.strokeStyle = `rgba(${grainR}, ${grainG}, ${grainB}, ${alpha})`;
+        ctx.lineWidth = thickness;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+
+        // Gentle wave pattern for natural wood flow
+        for (let x = 0; x <= 2048; x += 3) {
+          const wave = Math.sin(x * 0.01) * 8 +
+                       Math.sin(x * 0.025) * 4 +
+                       Math.random() * 2;
+          ctx.lineTo(x, y + wave);
+        }
+        ctx.stroke();
+      }
+
+      // Very subtle secondary grain
+      for (let i = 0; i < 150; i++) {
+        const y = Math.random() * 2048;
+        ctx.strokeStyle = `rgba(${grainR}, ${grainG}, ${grainB}, ${0.03 + Math.random() * 0.06})`;
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        for (let x = 0; x <= 2048; x += 4) {
+          const wave = Math.sin(x * 0.018) * 4 + Math.random();
+          ctx.lineTo(x, y + wave);
+        }
+        ctx.stroke();
+      }
+
+      // Delicate wood knots (fewer and subtler for hinoki/sakura)
+      for (let i = 0; i < 6; i++) {
+        const x = Math.random() * 2048;
+        const y = Math.random() * 2048;
+        const maxRadius = 20 + Math.random() * 35;
+
+        // Soft concentric rings
+        for (let r = maxRadius; r > 0; r -= 3) {
+          const alpha = (1 - r / maxRadius) * 0.15;  // Very subtle
+          ctx.strokeStyle = `rgba(${darkR}, ${darkG}, ${darkB}, ${alpha})`;
+          ctx.lineWidth = 0.8;
+          ctx.beginPath();
+          ctx.ellipse(x, y, r, r * 0.9, Math.random() * Math.PI, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        // Soft knot center
+        const centerGradient = ctx.createRadialGradient(x, y, 0, x, y, 10);
+        centerGradient.addColorStop(0, `rgba(${darkR - 10}, ${darkG - 10}, ${darkB - 10}, 0.2)`);
+        centerGradient.addColorStop(1, `rgba(${darkR}, ${darkG}, ${darkB}, 0)`);
+        ctx.fillStyle = centerGradient;
+        ctx.beginPath();
+        ctx.arc(x, y, 10, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Soft color variation (warmth of natural light wood)
+      for (let i = 0; i < 30; i++) {
+        const x = Math.random() * 2048;
+        const y = Math.random() * 2048;
+        const size = 80 + Math.random() * 140;
+        const variation = Math.random() * 8 - 4;
+
+        const patchGradient = ctx.createRadialGradient(x, y, 0, x, y, size);
+        patchGradient.addColorStop(0, `rgba(${baseR + variation}, ${baseG + variation}, ${baseB + variation - 2}, 0.12)`);
+        patchGradient.addColorStop(0.7, `rgba(${baseR + variation * 0.5}, ${baseG + variation * 0.5}, ${baseB + variation * 0.5}, 0.05)`);
+        patchGradient.addColorStop(1, `rgba(${baseR}, ${baseG}, ${baseB}, 0)`);
+        ctx.fillStyle = patchGradient;
+        ctx.fillRect(x - size, y - size, size * 2, size * 2);
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(2, 2);
+      texture.anisotropy = 16;
+      return texture;
+    }
+
+    function createCarvedPit(isPlayer, isStore, woodTexture) {
+      const group = new THREE.Group();
+
+      // Pit dimensions - stores are oval shaped
+      const radius = isStore ? 1.0 : 0.7;
+      const depth = isStore ? 1.0 : 0.5;
+
+      // Carved pit - sunken INTO the board
+      const geometry = new THREE.CylinderGeometry(radius, radius * 0.92, depth, 32);
+
+      // Enhanced wood material with realistic shading
+      const woodMaterial = new THREE.MeshStandardMaterial({
+        map: woodTexture,
+        color: CONFIG.WOOD_GRAIN_COLOR,
+        roughness: 0.85,
+        metalness: 0.02,
+        envMapIntensity: 0.3
+      });
+
+      const pit = new THREE.Mesh(geometry, woodMaterial);
+      pit.position.y = -depth / 2; // Sunken into board
+      pit.receiveShadow = true;
+      pit.castShadow = true;
+
+      // Make stores oval by scaling in Z direction
+      if (isStore) {
+        pit.scale.set(1, 1, 1.8); // Elongate in Z direction
+      }
+
+      group.add(pit);
+
+      // Wireframe edges
+      const edges = new THREE.EdgesGeometry(geometry);
+      const edgeMaterial = new THREE.LineBasicMaterial({
+        color: isPlayer ? CONFIG.ACCENT_COLOR : 0xffd700,
+        linewidth: 2
+      });
+      const wireframe = new THREE.LineSegments(edges, edgeMaterial);
+      wireframe.position.y = -depth / 2;
+
+      if (isStore) {
+        wireframe.scale.set(1, 1, 1.8); // Match pit scaling
+      }
+
+      group.add(wireframe);
+
+      // Rim at top of pit (oval for stores)
+      const rimRadius = radius + 0.08;
+      const rimGeometry = new THREE.RingGeometry(radius, rimRadius, 32);
+      const rimMaterial = new THREE.MeshStandardMaterial({
+        color: CONFIG.WOOD_DARK_COLOR,
+        roughness: 0.9,
+        metalness: 0.1,
+        side: THREE.DoubleSide
+      });
+      const rim = new THREE.Mesh(rimGeometry, rimMaterial);
+      rim.rotation.x = -Math.PI / 2;
+      rim.position.y = 0.02;
+      rim.receiveShadow = true;
+
+      if (isStore) {
+        rim.scale.set(1, 1.8, 1); // Oval rim for stores
+      }
+
+      group.add(rim);
+
+      // Ambient occlusion shadow at bottom for depth
+      const shadowGeometry = new THREE.CircleGeometry(radius * 0.88, 32);
+      const shadowMaterial = new THREE.MeshBasicMaterial({
+        color: 0x000000,
+        transparent: true,
+        opacity: 0.6
+      });
+      const shadow = new THREE.Mesh(shadowGeometry, shadowMaterial);
+      shadow.rotation.x = -Math.PI / 2;
+      shadow.position.y = -depth + 0.02;
+
+      if (isStore) {
+        shadow.scale.set(1, 1.8, 1); // Match oval shape
+      }
+
+      group.add(shadow);
+
+      // Add gradient shadow on walls for depth perception
+      const innerRadius = radius * 0.9;
+      const wallShadowGeometry = new THREE.RingGeometry(innerRadius, radius * 0.88, 32);
+      const wallShadowMaterial = new THREE.MeshBasicMaterial({
+        color: CONFIG.WOOD_DARK_COLOR,
+        transparent: true,
+        opacity: 0.3,
+        side: THREE.DoubleSide
+      });
+      const wallShadow = new THREE.Mesh(wallShadowGeometry, wallShadowMaterial);
+      wallShadow.rotation.x = -Math.PI / 2;
+      wallShadow.position.y = -depth * 0.3;
+
+      if (isStore) {
+        wallShadow.scale.set(1, 1.8, 1);
+      }
+
+      group.add(wallShadow);
+
+      return group;
+    }
+
+    function createSakuraGlow() {
+      // Subtle cherry blossom glow around board edges (replaces neon tubes)
+      const glowColor = CONFIG.ACCENT_COLOR;
+
+      // Soft edge lights at corners for ambient cherry blossom effect
+      const positions = [
+        { x: -6, z: -3, y: 1 },
+        { x: 6, z: -3, y: 1 },
+        { x: -6, z: 3, y: 1 },
+        { x: 6, z: 3, y: 1 }
+      ];
+
+      positions.forEach(pos => {
+        const edgeLight = new THREE.PointLight(glowColor, CONFIG.SAKURA_GLOW_INTENSITY, CONFIG.SAKURA_GLOW_RANGE);
+        edgeLight.position.set(pos.x, pos.y, pos.z);
+        scene.add(edgeLight);
+        neonTubes.push(edgeLight);  // Reuse array for cleanup
+      });
+
+      // Central soft pink glow above board
+      const centerGlow = new THREE.PointLight(CONFIG.SAKURA_PINK, 0.3, 15);
+      centerGlow.position.set(0, 2, 0);
+      scene.add(centerGlow);
+      neonTubes.push(centerGlow);
+    }
+
+    function updateStones() {
+      // Clear existing stones and labels
+      stoneMeshes.forEach(stone => scene.remove(stone));
+      stoneMeshes = [];
+      textSprites.forEach(sprite => scene.remove(sprite));
+      textSprites = [];
+
+      // Create stones with variation
+      gameState.board.forEach((count, index) => {
+        if (index === CONFIG.PLAYER_STORE || index === CONFIG.AI_STORE) return;
+
+        let pos = getPitPosition(index);
+
+        // Add stone count label
+        const label = createTextSprite(count.toString(), CONFIG.ACCENT_COLOR);
+        label.position.set(pos.x, 0.9, pos.z);
+        scene.add(label);
+        textSprites.push(label);
+
+        // Show individual stones (up to 12 for visibility)
+        const displayCount = Math.min(count, 12);
+        for (let i = 0; i < displayCount; i++) {
+          const stone = createStone();
+          const layer = Math.floor(i / 6);
+          const posInLayer = i % 6;
+          const angle = (posInLayer / 6) * Math.PI * 2;
+          const radius = 0.3 + (layer * 0.08);
+          stone.position.set(
+            pos.x + Math.cos(angle) * radius,
+            0.0 + layer * 0.25,  // Start at rim level for visibility
+            pos.z + Math.sin(angle) * radius
+          );
+          stone.castShadow = true;
+          scene.add(stone);
+          stoneMeshes.push(stone);
+        }
+      });
+
+      // Store stones with labels (oval shaped stores)
+      const stores = [
+        { count: gameState.board[CONFIG.PLAYER_STORE], pos: { x: 5.5, z: 0 } },
+        { count: gameState.board[CONFIG.AI_STORE], pos: { x: -5.5, z: 0 } }
+      ];
+
+      stores.forEach(store => {
+        // Store label
+        const label = createTextSprite(store.count.toString(), CONFIG.ACCENT_COLOR);
+        label.position.set(store.pos.x, 1.8, store.pos.z);
+        label.scale.multiplyScalar(1.5);
+        scene.add(label);
+        textSprites.push(label);
+
+        // Show individual stones (up to 24) in oval pattern
+        const displayCount = Math.min(store.count, 24);
+        for (let i = 0; i < displayCount; i++) {
+          const stone = createStone();
+          const layer = Math.floor(i / 8);
+          const posInLayer = i % 8;
+          const angle = (posInLayer / 8) * Math.PI * 2;
+          const radiusX = 0.6 - layer * 0.05;  // Horizontal radius
+          const radiusZ = radiusX * 1.8;        // Oval: elongated in Z
+          stone.position.set(
+            store.pos.x + Math.cos(angle) * radiusX,
+            0.0 + layer * 0.22,  // Start at rim level for visibility
+            store.pos.z + Math.sin(angle) * radiusZ
+          );
+          stone.castShadow = true;
+          scene.add(stone);
+          stoneMeshes.push(stone);
+        }
+      });
+    }
+
+    function createStone() {
+      // Random size variation
+      const size = CONFIG.STONE_SIZE_MIN +
+                   Math.random() * (CONFIG.STONE_SIZE_MAX - CONFIG.STONE_SIZE_MIN);
+
+      const geometry = new THREE.SphereGeometry(size, 20, 20);  // Smoother solid appearance
+
+      // Natural variation - pick random stone color from palette
+      const baseColor = CONFIG.STONE_COLORS[Math.floor(Math.random() * CONFIG.STONE_COLORS.length)];
+      const r = ((baseColor >> 16) & 255) / 255;
+      const g = ((baseColor >> 8) & 255) / 255;
+      const b = (baseColor & 255) / 255;
+
+      // Subtle color variation within the base color
+      const variation = (Math.random() - 0.5) * 0.08;
+      const color = new THREE.Color(
+        Math.max(0, Math.min(1, r + variation)),
+        Math.max(0, Math.min(1, g + variation)),
+        Math.max(0, Math.min(1, b + variation))
+      );
+
+      // Natural stone material
+      const solidMaterial = new THREE.MeshStandardMaterial({
+        color: color,
+        transparent: false,
+        opacity: 1.0,
+        roughness: 0.75 + Math.random() * 0.2,  // Varied roughness for natural look
+        metalness: 0.0  // No metallic - natural stones are matte
+      });
+
+      // Subtle wireframe in darker stone tone
+      const edges = new THREE.EdgesGeometry(geometry);
+      const wireframeMaterial = new THREE.LineBasicMaterial({
+        color: CONFIG.WOOD_DARK_COLOR,
+        linewidth: 0.5,
+        transparent: true,
+        opacity: 0.3
+      });
+      const wireframe = new THREE.LineSegments(edges, wireframeMaterial);
+
+      const group = new THREE.Group();
+      const solid = new THREE.Mesh(geometry, solidMaterial);
+      solid.castShadow = true;
+      solid.receiveShadow = true;
+      group.add(solid);
+      group.add(wireframe);
+
+      return group;
+    }
+
+    function createTextSprite(text, color) {
+      const canvas = document.createElement('canvas');
+      const size = 256;
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+
+      // Text
+      ctx.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
+      ctx.font = 'bold 120px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, size/2, size/2);
+
+      // Glow
+      ctx.shadowColor = `#${color.toString(16).padStart(6, '0')}`;
+      ctx.shadowBlur = 20;
+      ctx.fillText(text, size/2, size/2);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      const material = new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        depthTest: false
+      });
+      const sprite = new THREE.Sprite(material);
+      sprite.scale.set(0.8, 0.8, 1);
+
+      return sprite;
+    }
+
+    function getPitPosition(index) {
+      if (index < 6) {
+        return { x: -5 + index * 2, z: 2 };
+      } else if (index === CONFIG.PLAYER_STORE) {
+        return { x: 5.5, z: 0 };  // Inside board boundaries
+      } else if (index === CONFIG.AI_STORE) {
+        return { x: -5.5, z: 0 };  // Inside board boundaries
+      } else {
+        return { x: 5 - (index - 7) * 2, z: -2 };
+      }
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // Rotate text sprites to face camera
+      textSprites.forEach(sprite => {
+        sprite.lookAt(camera.position);
+      });
+
+      renderer.render(scene, camera);
+    }
+
+    function onWindowResize() {
+      // Fixed 1280x720 resolution
+      camera.aspect = 1280 / 720;
+      camera.updateProjectionMatrix();
+      renderer.setSize(1280, 720);
+    }
+
+    // ============================================
+    // ANIMATION SYSTEM
+    // ============================================
+    async function animateMove(pitIndex, player) {
+      gameState.animating = true;
+      gameState.skipRequested = false;
+      showSkipButton(true);
+
+      let stones = gameState.board[pitIndex];
+      gameState.board[pitIndex] = 0;
+      let currentPit = pitIndex;
+      let lastPit = -1;
+
+      const playerStore = player === 'human' ? CONFIG.PLAYER_STORE : CONFIG.AI_STORE;
+      const opponentStore = player === 'human' ? CONFIG.AI_STORE : CONFIG.PLAYER_STORE;
+
+      updateStones(); // Update to show picked up stones
+
+      // Animate each stone
+      while (stones > 0 && !gameState.skipRequested) {
+        // Move counter-clockwise (FORWARD in array indices)
+        currentPit = (currentPit + 1) % 14;
+
+        // Skip opponent's store
+        if (currentPit === opponentStore) {
+          currentPit = (currentPit + 1) % 14;
+        }
+
+        // Animate stone traveling
+        await animateStoneTravel(pitIndex, currentPit);
+
+        gameState.board[currentPit]++;
+        lastPit = currentPit;
+        stones--;
+
+        updateStones();
+        playSound('drop');
+
+        if (!gameState.skipRequested && stones > 0) {
+          await sleep(CONFIG.DELAY_BETWEEN_STONES);
+        }
+      }
+
+      showSkipButton(false);
+
+      // If skipped, instantly place remaining stones
+      if (gameState.skipRequested) {
+        while (stones > 0) {
+          currentPit = (currentPit + 1) % 14;
+          if (currentPit === opponentStore) {
+            currentPit = (currentPit + 1) % 14;
+          }
+          gameState.board[currentPit]++;
+          lastPit = currentPit;
+          stones--;
+        }
+        updateStones();
+      }
+
+      // Check for capture
+      const playerSide = player === 'human' ? [0,1,2,3,4,5] : [7,8,9,10,11,12];
+
+      if (playerSide.includes(lastPit) && gameState.board[lastPit] === 1) {
+        const oppositePit = 12 - lastPit;
+        if (gameState.board[oppositePit] > 0) {
+          playSound('capture');
+          showNotification('CAPTURE!');
+          gameState.board[playerStore] += gameState.board[oppositePit] + 1;
+          gameState.board[oppositePit] = 0;
+          gameState.board[lastPit] = 0;
+          await sleep(500);
+          updateStones();
+        }
+      }
+
+      // Check for extra turn
+      const gotExtraTurn = lastPit === playerStore;
+      if (gotExtraTurn) {
+        playSound('extraTurn');
+        showNotification(player === 'human' ? 'EXTRA TURN!' : 'AI EXTRA TURN');
+        await sleep(800);
+      } else {
+        gameState.currentPlayer = player === 'human' ? 'ai' : 'human';
+      }
+
+      // Check game over
+      const playerSideSum = playerSide.reduce((sum, i) => sum + gameState.board[i], 0);
+      if (playerSideSum === 0) {
+        endGame();
+      }
+
+      updateScores();
+      updateUI();
+      gameState.animating = false;
+
+      return gotExtraTurn;
+    }
+
+    async function animateStoneTravel(fromPit, toPit) {
+      if (gameState.skipRequested) return;
+
+      const fromPos = getPitPosition(fromPit);
+      const toPos = getPitPosition(toPit);
+
+      // Create temporary stone for animation
+      const stone = createStone();
+      stone.position.set(fromPos.x, 0.2, fromPos.z);
+      scene.add(stone);
+
+      const startTime = Date.now();
+      const duration = CONFIG.STONE_TRAVEL_DURATION;
+
+      return new Promise(resolve => {
+        function animateFrame() {
+          if (gameState.skipRequested) {
+            scene.remove(stone);
+            resolve();
+            return;
+          }
+
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+
+          // Arc trajectory
+          const x = fromPos.x + (toPos.x - fromPos.x) * progress;
+          const z = fromPos.z + (toPos.z - fromPos.z) * progress;
+          const y = 0.2 + Math.sin(progress * Math.PI) * CONFIG.ARC_HEIGHT;
+
+          stone.position.set(x, y, z);
+
+          if (progress >= 1) {
+            scene.remove(stone);
+            resolve();
+          } else {
+            requestAnimationFrame(animateFrame);
+          }
+        }
+        animateFrame();
+      });
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function showNotification(message) {
+      const notif = document.getElementById('notification');
+      notif.textContent = message;
+      notif.classList.remove('show');
+      void notif.offsetWidth; // Force reflow
+      notif.classList.add('show');
+      setTimeout(() => notif.classList.remove('show'), 2000);
+    }
+
+    function showSkipButton(show) {
+      document.getElementById('skipButton').classList.toggle('show', show);
+    }
+
+    function skipAnimation() {
+      gameState.skipRequested = true;
+    }
+
+    // ============================================
+    // GAME LOGIC
+    // ============================================
+    function initGame() {
+      gameState.board = Array(14).fill(0);
+      for (let i = 0; i < 14; i++) {
+        if (i !== CONFIG.PLAYER_STORE && i !== CONFIG.AI_STORE) {
+          gameState.board[i] = CONFIG.INITIAL_STONES;
+        }
+      }
+      gameState.currentPlayer = 'human';
+      gameState.gameOver = false;
+      gameState.playerScore = 0;
+      gameState.aiScore = 0;
+      gameState.animating = false;
+
+      updateUI();
+      updateStones();
+
+      if (settings.showRules && !localStorage.getItem('mancala_rules_seen')) {
+        showRules();
+      }
+    }
+
+    async function makeMove(pitIndex) {
+      if (gameState.gameOver) return false;
+      if (gameState.animating) return false;
+      if (gameState.currentPlayer !== 'human') return false;
+      if (pitIndex >= 6) return false;
+      if (gameState.board[pitIndex] === 0) return false;
+
+      playSound('click');
+      await animateMove(pitIndex, 'human');
+
+      if (!gameState.gameOver && gameState.currentPlayer === 'ai') {
+        setTimeout(aiMove, 800);
+      }
+
+      return true;
+    }
+
+    async function aiMove() {
+      if (gameState.gameOver) return;
+      if (gameState.currentPlayer !== 'ai') return;
+
+      showAIThinking(true);
+
+      await sleep(1200);
+      const move = getBestMove();
+      playSound('click');
+      showAIThinking(false);
+
+      await animateMove(move, 'ai');
+
+      if (!gameState.gameOver && gameState.currentPlayer === 'ai') {
+        setTimeout(aiMove, 800);
+      }
+    }
+
+    function getBestMove() {
+      const difficulty = settings.difficulty;
+      const depth = difficulty === 'easy' ? 2 : difficulty === 'medium' ? 4 : 6;
+
+      let bestMove = -1;
+      let bestScore = -Infinity;
+
+      for (let i = 7; i < 13; i++) {
+        if (gameState.board[i] === 0) continue;
+
+        const boardCopy = [...gameState.board];
+        const score = minimax(boardCopy, depth, -Infinity, Infinity, true, i);
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestMove = i;
+        }
+      }
+
+      return bestMove !== -1 ? bestMove : 7;
+    }
+
+    function minimax(board, depth, alpha, beta, maximizing, firstMove) {
+      if (depth === 0) {
+        return board[CONFIG.AI_STORE] - board[CONFIG.PLAYER_STORE];
+      }
+
+      if (maximizing) {
+        let maxEval = -Infinity;
+        for (let i = 7; i < 13; i++) {
+          if (board[i] === 0) continue;
+          const newBoard = simulateMove([...board], i, 'ai');
+          const eval = minimax(newBoard, depth - 1, alpha, beta, false, firstMove);
+          maxEval = Math.max(maxEval, eval);
+          alpha = Math.max(alpha, eval);
+          if (beta <= alpha) break;
+        }
+        return maxEval;
+      } else {
+        let minEval = Infinity;
+        for (let i = 0; i < 6; i++) {
+          if (board[i] === 0) continue;
+          const newBoard = simulateMove([...board], i, 'human');
+          const eval = minimax(newBoard, depth - 1, alpha, beta, true, firstMove);
+          minEval = Math.min(minEval, eval);
+          beta = Math.min(beta, eval);
+          if (beta <= alpha) break;
+        }
+        return minEval;
+      }
+    }
+
+    function simulateMove(board, pitIndex, player) {
+      let stones = board[pitIndex];
+      board[pitIndex] = 0;
+      let currentPit = pitIndex;
+      let lastPit = -1;
+
+      const playerStore = player === 'human' ? CONFIG.PLAYER_STORE : CONFIG.AI_STORE;
+      const opponentStore = player === 'human' ? CONFIG.AI_STORE : CONFIG.PLAYER_STORE;
+
+      // Distribute counter-clockwise (FORWARD)
+      while (stones > 0) {
+        currentPit = (currentPit + 1) % 14;
+
+        // Skip opponent's store
+        if (currentPit === opponentStore) {
+          currentPit = (currentPit + 1) % 14;
+        }
+
+        board[currentPit]++;
+        lastPit = currentPit;
+        stones--;
+      }
+
+      // Capture logic
+      const playerSide = player === 'human' ? [0,1,2,3,4,5] : [7,8,9,10,11,12];
+
+      if (playerSide.includes(lastPit) && board[lastPit] === 1) {
+        const oppositePit = 12 - lastPit;
+        if (board[oppositePit] > 0) {
+          board[playerStore] += board[oppositePit] + 1;
+          board[oppositePit] = 0;
+          board[lastPit] = 0;
+        }
+      }
+
+      return board;
+    }
+
+    function endGame() {
+      gameState.gameOver = true;
+
+      // Collect remaining stones
+      for (let i = 0; i < 6; i++) {
+        gameState.board[CONFIG.PLAYER_STORE] += gameState.board[i];
+        gameState.board[i] = 0;
+      }
+      for (let i = 7; i < 13; i++) {
+        gameState.board[CONFIG.AI_STORE] += gameState.board[i];
+        gameState.board[i] = 0;
+      }
+
+      updateScores();
+      updateStones();
+
+      const playerScore = gameState.board[CONFIG.PLAYER_STORE];
+      const aiScore = gameState.board[CONFIG.AI_STORE];
+
+      // Update stats
+      stats.gamesPlayed++;
+      if (playerScore > aiScore) {
+        stats.wins++;
+        playSound('win');
+      } else {
+        playSound('lose');
+      }
+      if (playerScore > stats.personalBest) {
+        stats.personalBest = playerScore;
+      }
+      saveStats();
+
+      setTimeout(() => showGameOver(playerScore, aiScore), 1000);
+    }
+
+    function updateScores() {
+      gameState.playerScore = gameState.board[CONFIG.PLAYER_STORE];
+      gameState.aiScore = gameState.board[CONFIG.AI_STORE];
+    }
+
+    // ============================================
+    // UI UPDATES
+    // ============================================
+    function updateUI() {
+      document.getElementById('playerScore').textContent = `YOU: ${gameState.playerScore}`;
+      document.getElementById('aiScore').textContent = `AI: ${gameState.aiScore}`;
+
+      if (gameState.gameOver) {
+        document.getElementById('turnIndicator').innerHTML = 'GAME OVER';
+        document.getElementById('moveHint').textContent = '';
+      } else if (gameState.currentPlayer === 'human') {
+        document.getElementById('turnIndicator').innerHTML = 'YOUR TURN<span class="cursor"></span>';
+        document.getElementById('moveHint').textContent = settings.hintsEnabled ?
+          'Click any pit on your side to make a move' : '';
+      } else {
+        document.getElementById('turnIndicator').innerHTML = 'AI TURN<span class="cursor"></span>';
+        document.getElementById('moveHint').textContent = 'AI is calculating its move...';
+      }
+    }
+
+    function showAIThinking(show) {
+      document.getElementById('aiThinkingBar').classList.toggle('active', show);
+    }
+
+    function showRules() {
+      document.getElementById('rulesOverlay').classList.add('active');
+    }
+
+    function closeRules() {
+      document.getElementById('rulesOverlay').classList.remove('active');
+      if (document.getElementById('dontShowRules').checked) {
+        settings.showRules = false;
+        localStorage.setItem('mancala_rules_seen', 'true');
+      }
+    }
+
+    function showSettings() {
+      document.getElementById('settingsOverlay').classList.add('active');
+      updateStatsDisplay();
+
+      document.querySelector(`input[name="difficulty"][value="${settings.difficulty}"]`).checked = true;
+      document.getElementById('volumeSlider').value = settings.volume * 100;
+      document.getElementById('volumeValue').textContent = Math.round(settings.volume * 100) + '%';
+      document.getElementById('hintsToggle').checked = settings.hintsEnabled;
+      document.getElementById('soundToggle').checked = settings.soundEnabled;
+    }
+
+    function closeSettings() {
+      document.getElementById('settingsOverlay').classList.remove('active');
+      saveSettings();
+    }
+
+    function showGameOver(playerScore, aiScore) {
+      const overlay = document.getElementById('gameOverOverlay');
+      const title = document.getElementById('gameOverTitle');
+      const message = document.getElementById('gameOverMessage');
+      const score = document.getElementById('gameOverScore');
+      const statsEl = document.getElementById('gameOverStats');
+
+      if (playerScore > aiScore) {
+        title.textContent = 'VICTORY!';
+        message.textContent = 'You defeated the AI!';
+      } else if (playerScore < aiScore) {
+        title.textContent = 'DEFEAT';
+        message.textContent = 'AI wins this round...';
+      } else {
+        title.textContent = 'DRAW';
+        message.textContent = 'Evenly matched!';
+      }
+
+      score.textContent = `Final Score: YOU ${playerScore} | AI ${aiScore}`;
+
+      const winRate = stats.gamesPlayed > 0 ?
+        Math.round((stats.wins / stats.gamesPlayed) * 100) : 0;
+      statsEl.innerHTML = `
+        Personal Best: ${stats.personalBest}<br>
+        Games Played: ${stats.gamesPlayed}<br>
+        Win Rate: ${winRate}%
+      `;
+
+      overlay.classList.add('active');
+    }
+
+    function closeGameOver() {
+      document.getElementById('gameOverOverlay').classList.remove('active');
+    }
+
+    function newGame() {
+      closeGameOver();
+      initGame();
+    }
+
+    function updateStatsDisplay() {
+      document.getElementById('statBest').textContent = stats.personalBest;
+      document.getElementById('statGames').textContent = stats.gamesPlayed;
+      document.getElementById('statWins').textContent = stats.wins;
+      const winRate = stats.gamesPlayed > 0 ?
+        Math.round((stats.wins / stats.gamesPlayed) * 100) : 0;
+      document.getElementById('statWinRate').textContent = winRate + '%';
+    }
+
+    function resetStats() {
+      if (!confirm('Reset all statistics? This cannot be undone.')) return;
+      stats = { gamesPlayed: 0, wins: 0, personalBest: 0 };
+      saveStats();
+      updateStatsDisplay();
+    }
+
+    function updateVolume(value) {
+      settings.volume = value / 100;
+      document.getElementById('volumeValue').textContent = value + '%';
+    }
+
+    function toggleHints(enabled) {
+      settings.hintsEnabled = enabled;
+      updateUI();
+    }
+
+    function toggleSound(enabled) {
+      settings.soundEnabled = enabled;
+    }
+
+    // ============================================
+    // SOUND SYSTEM
+    // ============================================
+    function playSound(type) {
+      if (!settings.soundEnabled) return;
+
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const now = ctx.currentTime;
+      const vol = settings.volume;
+
+      if (type === 'click') {
+        // Soft wooden "tok" (deeper, warmer)
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 120;  // Deep, warm tone
+        gain.gain.setValueAtTime(vol * 0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start();
+        osc.stop(now + 0.12);
+      } else if (type === 'drop') {
+        // Natural stone drop sound (subtle)
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 180 + Math.random() * 60;  // Varied natural tone
+        gain.gain.setValueAtTime(vol * 0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start();
+        osc.stop(now + 0.1);
+      } else if (type === 'capture') {
+        // Gentle bell (like windchime)
+        const notes = [880, 1108];  // Soft harmonic interval
+        notes.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          const startTime = now + i * 0.05;
+          gain.gain.setValueAtTime(vol * 0.2, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.4);
+          osc.connect(gain).connect(ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + 0.4);
+        });
+      } else if (type === 'extraTurn') {
+        // Calm chime sequence (pentatonic scale - traditional Japanese)
+        const notes = [523, 587];  // C, D (part of pentatonic)
+        notes.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          const startTime = now + i * 0.12;
+          gain.gain.setValueAtTime(vol * 0.22, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.35);
+          osc.connect(gain).connect(ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + 0.35);
+        });
+      } else if (type === 'win') {
+        // Calm melody (traditional Japanese pentatonic scale)
+        const notes = [523, 587, 659, 784];  // C, D, E, G
+        notes.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          const startTime = now + i * 0.18;
+          gain.gain.setValueAtTime(vol * 0.2, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.5);
+          osc.connect(gain).connect(ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + 0.5);
+        });
+      } else if (type === 'lose') {
+        // Soft descending tone (gentle, not harsh)
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(392, now);  // G
+        osc.frequency.exponentialRampToValueAtTime(294, now + 0.6);  // D
+        gain.gain.setValueAtTime(vol * 0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start();
+        osc.stop(now + 0.6);
+      }
+    }
+
+    // ============================================
+    // PERSISTENCE
+    // ============================================
+    function saveSettings() {
+      localStorage.setItem('mancala_settings', JSON.stringify(settings));
+    }
+
+    function loadSettings() {
+      const saved = localStorage.getItem('mancala_settings');
+      if (saved) {
+        settings = { ...settings, ...JSON.parse(saved) };
+      }
+    }
+
+    function saveStats() {
+      localStorage.setItem('mancala_stats', JSON.stringify(stats));
+    }
+
+    function loadStats() {
+      const saved = localStorage.getItem('mancala_stats');
+      if (saved) {
+        stats = JSON.parse(saved);
+      }
+    }
+
+    // ============================================
+    // MOUSE INTERACTION
+    // ============================================
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    function onCanvasClick(event) {
+      if (gameState.animating) return;
+
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+
+      // Check pit clicks
+      const intersects = raycaster.intersectObjects(scene.children, true);
+
+      for (let intersect of intersects) {
+        let obj = intersect.object;
+        while (obj.parent && !obj.userData.type) {
+          obj = obj.parent;
+        }
+
+        if (obj.userData.type === 'pit') {
+          makeMove(obj.userData.index);
+          break;
+        }
+      }
+    }
+
+    document.getElementById('canvas3d').addEventListener('click', onCanvasClick);
+
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    loadSettings();
+    loadStats();
+    initThreeJS();
+    initGame();
+  </script>
+</body>
+</html>
