@@ -249,7 +249,11 @@
       text-shadow: 0 0 12px rgba(255,20,147,.35);
       opacity:.95;
     }
-
+/* Fix TURBO badge clipping on the splash title */
+#mancalaSplash .mancalaTitle:after{
+  top: 6px;          /* was -8px via h1:after */
+  right: 10px;       /* keep it inside the clipped area */
+}
     .sub{
       margin: 0 0 18px;
       text-align:center;
