@@ -7,19 +7,21 @@
   <meta name="description" content="Low noise. High signal. Quiet refusal." />
   <style>
     :root{
-      --bg:#020402;
-      --fg:#b7ffb7;
-      --dim:rgba(183,255,183,.72);
-      --line:rgba(183,255,183,.18);
-      --card:rgba(0,0,0,.48);
-      --glow:rgba(90,255,110,.22);
-
-      /* 80s palette injection */
-      --cyan:#00ffff;
-      --magenta:#ff00ff;
-      --hotpink:#ff1493;
-      --amber:#ffbf00;
-      --neon-blue:#4d4dff;
+      /* Traditional Japanese pre-1900 Zen color palette */
+      --bg:#f5e6d3;              /* Washi paper / light tatami */
+      --fg:#3d2817;              /* Dark wood / sumi ink */
+      --dim:rgba(61,40,23,.75);  /* Muted wood tone */
+      --line:rgba(139,119,101,.3); /* Subtle wood grain */
+      --card:rgba(235,220,200,.85); /* Light wood panel */
+      --glow:rgba(139,119,101,.15); /* Soft ambient glow */
+      
+      /* Natural earth tones */
+      --wood-dark:#4a3528;       /* Deep aged wood */
+      --wood-med:#8b7765;        /* Medium hinoki wood */
+      --wood-light:#d4c4b0;      /* Light wood */
+      --tatami:#c9b896;          /* Tatami mat color */
+      --shoji:#faf7f0;           /* Shoji screen white */
+      --bamboo:#6b8e23;          /* Bamboo green */
     }
 
     *{box-sizing:border-box}
@@ -28,50 +30,42 @@
     body{
       margin:0;
       background:
-        /* 80s grid overlay */
-        repeating-linear-gradient(0deg, transparent, transparent 49px, rgba(0,255,255,.04) 50px),
-        repeating-linear-gradient(90deg, transparent, transparent 49px, rgba(255,0,255,.04) 50px),
-        radial-gradient(900px 540px at 50% 18%, rgba(90,255,110,.10), transparent 60%),
-        radial-gradient(900px 640px at 50% 120%, rgba(90,255,110,.08), transparent 62%),
-        linear-gradient(180deg, rgba(0,0,0,.0), rgba(0,0,0,.35)),
+        /* Tatami mat texture */
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139,119,101,.06) 2px, rgba(139,119,101,.06) 3px),
+        repeating-linear-gradient(90deg, transparent, transparent 120px, rgba(139,119,101,.08) 120px, rgba(139,119,101,.08) 122px),
+        /* Soft ambient lighting */
+        radial-gradient(ellipse 900px 540px at 50% 0%, rgba(250,247,240,.4), transparent 70%),
+        radial-gradient(ellipse 600px 400px at 30% 100%, rgba(201,184,150,.15), transparent 60%),
+        linear-gradient(180deg, #f0e8d8, #ebe0d0),
         var(--bg);
       color:var(--fg);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-      letter-spacing: 0.01em;
+      font-family: 'Times New Roman', 'Noto Serif JP', 'Yu Mincho', serif;
+      letter-spacing: 0.02em;
     }
 
-    /* scanlines */
+    /* Paper texture effect */
     body:before{
       content:"";
       position:fixed; inset:0;
-      background: repeating-linear-gradient(
-        to bottom,
-        rgba(0,0,0,0.00),
-        rgba(0,0,0,0.00) 2px,
-        rgba(0,0,0,0.18) 3px
-      );
+      background: 
+        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch"/></filter><rect width="200" height="200" filter="url(%23noise)" opacity="0.03"/></svg>');
       pointer-events:none;
-      mix-blend-mode:multiply;
-      opacity:.33;
+      opacity:.4;
     }
 
-    /* CRT flicker (mild, not glitchy) */
+    /* Soft ambient light breathing effect */
     body:after{
       content:"";
       position:fixed; inset:0;
       background:
-        radial-gradient(circle at 50% 35%, rgba(0,255,255,.03), transparent 55%),
-        radial-gradient(circle at 50% 35%, rgba(90,255,110,.08), transparent 55%);
+        radial-gradient(circle at 50% 35%, rgba(250,247,240,.15), transparent 55%);
       pointer-events:none;
-      opacity:.08;
-      animation:flicker 6.5s infinite;
+      opacity:.3;
+      animation:breathe 8s infinite ease-in-out;
     }
-    @keyframes flicker{
-      0%,100%{opacity:.08; filter:brightness(1)}
-      48%{opacity:.06; filter:brightness(0.985)}
-      50%{opacity:.10; filter:brightness(1.02)}
-      52%{opacity:.07; filter:brightness(0.99)}
-      70%{opacity:.09; filter:brightness(1.01)}
+    @keyframes breathe{
+      0%,100%{opacity:.25}
+      50%{opacity:.35}
     }
 
     .stage{
@@ -82,39 +76,39 @@
       position:relative;
     }
 
-    /* floating 80s geometric shapes */
-    .retro-shape{
+    /* Traditional decorative elements - hanging scroll, bamboo */
+    .zen-element{
       position:absolute;
-      border:2px solid;
-      opacity:.15;
+      opacity:.25;
       pointer-events:none;
-      animation: float 8s ease-in-out infinite;
     }
-    .shape-1{
-      top:12%; left:8%;
-      width:60px; height:60px;
-      border-color: var(--cyan);
-      transform: rotate(45deg);
+    .scroll-1{
+      top:8%; left:5%;
+      width:80px; height:140px;
+      border:2px solid var(--wood-dark);
+      border-radius:2px;
+      background:linear-gradient(180deg, var(--shoji), #f5f0e8);
+      box-shadow:0 4px 12px rgba(0,0,0,.1);
     }
-    .shape-2{
-      top:68%; right:12%;
-      width:80px; height:80px;
-      border-color: var(--magenta);
-      border-radius:50%;
-      animation-delay:-2s;
+    .bamboo-1{
+      top:60%; right:8%;
+      width:6px; height:180px;
+      background:repeating-linear-gradient(
+        180deg,
+        var(--bamboo),
+        var(--bamboo) 30px,
+        rgba(107,142,35,.7) 30px,
+        rgba(107,142,35,.7) 33px
+      );
+      border-radius:3px;
+      box-shadow:2px 2px 8px rgba(0,0,0,.15);
     }
-    .shape-3{
-      bottom:15%; left:15%;
-      width:0; height:0;
-      border-left:40px solid transparent;
-      border-right:40px solid transparent;
-      border-bottom:70px solid var(--hotpink);
-      opacity:.12;
-      animation-delay:-4s;
-    }
-    @keyframes float{
-      0%,100%{transform:translateY(0px) rotate(0deg)}
-      50%{transform:translateY(-20px) rotate(10deg)}
+    .stone-1{
+      bottom:12%; left:12%;
+      width:50px; height:40px;
+      border-radius:50% 45% 48% 52%;
+      background:radial-gradient(circle at 30% 30%, #a89886, #7a6f5d);
+      box-shadow:2px 3px 8px rgba(0,0,0,.2);
     }
 
     .grid{
@@ -129,35 +123,30 @@
     .terminal{
       width: min(860px, 100%);
       background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 14px;
+      border: 3px solid var(--wood-dark);
+      border-radius: 4px;
       box-shadow:
-        0 0 0 1px rgba(90,255,110,.05) inset,
-        0 0 40px rgba(0,255,255,.08),
-        0 18px 60px rgba(0,0,0,.65);
+        0 0 0 1px var(--wood-med) inset,
+        0 8px 24px rgba(61,40,23,.25),
+        0 2px 8px rgba(61,40,23,.15);
       overflow:hidden;
       position:relative;
     }
 
-    /* "UNDER CONSTRUCTION" stripe */
+    /* Traditional decorative header */
     .terminal:before{
-      content:"⚠ SYSTEM UPDATE IN PROGRESS ⚠";
+      content:"◆ 閑寂 ◆";
       position:absolute;
       top:0; left:0; right:0;
-      background: repeating-linear-gradient(
-        45deg,
-        rgba(255,191,0,.15),
-        rgba(255,191,0,.15) 10px,
-        rgba(0,0,0,.25) 10px,
-        rgba(0,0,0,.25) 20px
-      );
+      background: linear-gradient(180deg, var(--wood-dark), var(--wood-med));
       text-align:center;
-      font-size:10px;
-      color:var(--amber);
-      padding:4px 0;
-      border-bottom:1px solid rgba(255,191,0,.3);
-      letter-spacing:.05em;
+      font-size:13px;
+      color:var(--shoji);
+      padding:6px 0;
+      border-bottom:2px solid var(--wood-dark);
+      letter-spacing:.3em;
       z-index:10;
+      font-family: 'Times New Roman', serif;
     }
 
     .bar{
@@ -166,17 +155,18 @@
       justify-content:space-between;
       gap: 14px;
       padding: 14px 18px;
-      padding-top:28px; /* space for construction banner */
-      border-bottom: 1px dashed var(--line);
-      background: rgba(0,0,0,.35);
+      padding-top:32px; /* space for decorative header */
+      border-bottom: 2px solid var(--wood-dark);
+      background: linear-gradient(180deg, rgba(212,196,176,.3), rgba(235,220,200,.5));
     }
 
     .dots{display:flex; gap:8px; align-items:center}
     .dot{
-      width:10px;height:10px;border-radius:999px;
-      border:1px solid var(--line);
-      box-shadow: 0 0 18px var(--glow);
-      opacity:.9;
+      width:10px;height:10px;border-radius:50%;
+      border:2px solid var(--wood-dark);
+      background:radial-gradient(circle at 35% 35%, var(--wood-light), var(--wood-med));
+      box-shadow: inset 0 1px 2px rgba(0,0,0,.2);
+      opacity:.8;
     }
     .title{
       font-size: 12px;
@@ -190,39 +180,40 @@
     .boot{
       padding: 16px 18px 6px;
       color: var(--dim);
-      font-size: 13px;
-      line-height: 1.55;
+      font-size: 14px;
+      line-height: 1.7;
       white-space: pre-line;
       min-height: 140px;
       opacity:0;
-      animation: bootIn .35s ease forwards;
+      animation: fadeIn .8s ease forwards;
+      font-family: 'Times New Roman', serif;
     }
-    @keyframes bootIn{to{opacity:1}}
+    @keyframes fadeIn{to{opacity:1}}
     .boot .line{
       opacity:0;
-      transform: translateY(2px);
-      animation: lineIn .22s ease forwards;
+      transform: translateY(3px);
+      animation: lineIn .4s ease forwards;
     }
     @keyframes lineIn{to{opacity:1; transform:none}}
-    .boot .line:nth-child(1){animation-delay:.10s}
-    .boot .line:nth-child(2){animation-delay:.22s}
-    .boot .line:nth-child(3){animation-delay:.34s}
-    .boot .line:nth-child(4){animation-delay:.46s}
-    .boot .line:nth-child(5){animation-delay:.58s}
-    .boot .line:nth-child(6){animation-delay:.70s}
-    .boot .line:nth-child(7){animation-delay:.82s}
-    .boot .retro-inject{
-      color: var(--cyan);
-      text-shadow: 0 0 8px rgba(0,255,255,.55);
+    .boot .line:nth-child(1){animation-delay:.15s}
+    .boot .line:nth-child(2){animation-delay:.35s}
+    .boot .line:nth-child(3){animation-delay:.55s}
+    .boot .line:nth-child(4){animation-delay:.75s}
+    .boot .line:nth-child(5){animation-delay:.95s}
+    .boot .line:nth-child(6){animation-delay:1.15s}
+    .boot .line:nth-child(7){animation-delay:1.35s}
+    .boot .zen-highlight{
+      color: var(--wood-dark);
+      font-weight: 600;
     }
 
     .main{
       padding: 18px;
-      border-top: 1px dashed var(--line);
+      border-top: 2px solid var(--wood-dark);
       opacity:0;
-      transform: translateY(6px);
-      animation: mainIn .45s ease forwards;
-      animation-delay: 1.05s;
+      transform: translateY(8px);
+      animation: mainIn .6s ease forwards;
+      animation-delay: 1.5s;
     }
     @keyframes mainIn{to{opacity:1; transform:none}}
 
@@ -230,29 +221,32 @@
       margin: 0 0 10px;
       text-align:center;
       font-size: 34px;
-      letter-spacing: -0.01em;
-      text-shadow: 0 0 18px var(--glow);
+      letter-spacing: 0.05em;
+      text-shadow: 0 2px 4px rgba(61,40,23,.15);
       position:relative;
+      font-family: 'Times New Roman', serif;
+      font-weight: 400;
     }
 
-    /* Badge stays, but no glitch animation */
+    /* Traditional Japanese seal/stamp */
     h1:after{
-      content:"◢TURBO◣";
+      content:"静";
       position:absolute;
-      top:-8px; right:calc(50% - 180px);
-      font-size:11px;
-      color:var(--hotpink);
-      border:1px solid rgba(255,20,147,.75);
-      padding:2px 6px;
-      border-radius:3px;
-      background:rgba(255,20,147,.08);
-      text-shadow: 0 0 12px rgba(255,20,147,.35);
-      opacity:.95;
+      top:-4px; right:calc(50% - 200px);
+      font-size:16px;
+      color:var(--shoji);
+      border:2px solid var(--wood-dark);
+      padding:4px 8px;
+      border-radius:2px;
+      background:linear-gradient(135deg, #8b4513, #a0522d);
+      text-shadow: none;
+      opacity:.9;
+      font-family: 'Noto Serif JP', serif;
     }
-/* Fix TURBO badge clipping on the splash title */
+/* Keep TURBO badge position for splash */
 #mancalaSplash .mancalaTitle:after{
-  top: 6px;          /* was -8px via h1:after */
-  right: 10px;       /* keep it inside the clipped area */
+  top: 6px;
+  right: 10px;
 }
     .sub{
       margin: 0 0 18px;
@@ -262,25 +256,26 @@
     }
 
     .block{
-      border: 1px solid var(--line);
-      border-radius: 12px;
+      border: 2px solid var(--wood-dark);
+      border-radius: 4px;
       padding: 16px;
-      background: rgba(0,0,0,.30);
-      box-shadow: 0 0 0 1px rgba(90,255,110,.04) inset;
+      background: linear-gradient(135deg, rgba(250,247,240,.6), rgba(235,220,200,.5));
+      box-shadow: 0 2px 8px rgba(61,40,23,.1);
       position:relative;
     }
     .block:before{
       content:"";
       position:absolute;
-      top:-1px; left:20%;
+      top:-2px; left:20%;
       width:60%;
-      height:2px;
+      height:3px;
       background: linear-gradient(90deg,
         transparent,
-        rgba(0,255,255,.55) 30%,
-        rgba(255,0,255,.55) 70%,
+        var(--wood-dark) 30%,
+        var(--wood-med) 50%,
+        var(--wood-dark) 70%,
         transparent);
-      opacity:.35;
+      opacity:.5;
     }
 
     p{
@@ -293,9 +288,9 @@
     p:last-child{margin-bottom:0}
     .muted{color:var(--dim)}
     .hype{
-      color:rgba(0,255,255,.9);
-      text-shadow: 0 0 6px rgba(0,255,255,.45);
-      font-weight:600;
+      color:var(--wood-dark);
+      font-style: italic;
+      font-weight:500;
     }
 
     .tags{
@@ -308,21 +303,22 @@
     .tag{
       font-size: 12px;
       color: var(--dim);
-      border: 1px solid var(--line);
-      padding: 5px 9px;
-      border-radius: 999px;
-      background: rgba(0,0,0,.22);
-      transition: all .2s;
+      border: 2px solid var(--wood-med);
+      padding: 5px 10px;
+      border-radius: 3px;
+      background: rgba(250,247,240,.5);
+      transition: all .3s;
+      font-family: 'Times New Roman', serif;
     }
-    .tag.retro{
-      color: rgba(0,255,255,.9);
-      border-color: rgba(0,255,255,.65);
-      background: rgba(0,255,255,.08);
-      text-shadow: 0 0 6px rgba(0,255,255,.35);
+    .tag.zen{
+      color: var(--wood-dark);
+      border-color: var(--wood-dark);
+      background: rgba(235,220,200,.7);
+      font-weight: 500;
     }
-    .tag.retro:hover{
-      background: rgba(0,255,255,.15);
-      box-shadow: 0 0 12px rgba(0,255,255,.22);
+    .tag.zen:hover{
+      background: rgba(212,196,176,.8);
+      box-shadow: 0 2px 8px rgba(61,40,23,.15);
     }
 
     .status{
@@ -337,29 +333,29 @@
     .update-notice{
       margin-top:18px;
       text-align:center;
-      font-size:11px;
-      color:rgba(255,191,0,.85);
-      padding:8px 12px;
-      border:1px dashed rgba(255,191,0,.3);
-      border-radius:8px;
-      background:rgba(255,191,0,.05);
-      font-family: "Courier New", monospace;
+      font-size:12px;
+      color:var(--wood-dark);
+      padding:10px 14px;
+      border:2px solid var(--wood-med);
+      border-radius:4px;
+      background:linear-gradient(135deg, rgba(250,247,240,.7), rgba(235,220,200,.6));
+      font-family: 'Times New Roman', serif;
       letter-spacing:.02em;
+      line-height:1.6;
     }
     .update-notice strong{
-      color:rgba(255,20,147,.92);
-      text-shadow: 0 0 8px rgba(255,20,147,.35);
+      color:var(--wood-dark);
+      font-weight: 600;
     }
 
     .cursor{
       display:inline-block;
-      width: 9px;
-      height: 16px;
-      background: rgba(90,255,110,.75);
+      width: 2px;
+      height: 18px;
+      background: var(--wood-dark);
       margin-left: 6px;
       vertical-align: -2px;
-      box-shadow: 0 0 18px var(--glow);
-      animation: blink 1.05s steps(1,end) infinite;
+      animation: blink 1.2s steps(1,end) infinite;
     }
     @keyframes blink{ 50%{opacity:0} }
 
@@ -370,7 +366,7 @@
     }
 
     /* ===========================
-       BIG 80s MANCALA SPLASH (10s)
+       Traditional Japanese Mancala Splash (10s)
        =========================== */
     #mancalaSplash{
       position:fixed;
@@ -380,9 +376,9 @@
       place-items:center;
       padding: 18px;
       background:
-        radial-gradient(900px 540px at 50% 20%, rgba(0,255,255,.16), transparent 60%),
-        radial-gradient(900px 640px at 50% 120%, rgba(255,0,255,.10), transparent 62%),
-        linear-gradient(180deg, rgba(0,0,0,.65), rgba(0,0,0,.86)),
+        radial-gradient(900px 540px at 50% 20%, rgba(212,196,176,.2), transparent 60%),
+        radial-gradient(900px 640px at 50% 120%, rgba(201,184,150,.15), transparent 62%),
+        linear-gradient(180deg, #f0e8d8, #ebe0d0),
         var(--bg);
       transition: opacity 520ms ease;
     }
@@ -392,45 +388,37 @@
     }
     .mancalaFrame{
       width:min(980px, calc(100vw - 32px));
-      border-radius: 18px;
-      border: 1px solid rgba(183,255,183,.22);
-      background: rgba(0,0,0,.62);
+      border-radius: 4px;
+      border: 3px solid var(--wood-dark);
+      background: linear-gradient(135deg, rgba(250,247,240,.95), rgba(235,220,200,.9));
       box-shadow:
-        0 0 0 1px rgba(90,255,110,.08) inset,
-        0 0 40px rgba(0,255,255,.10),
-        0 24px 90px rgba(0,0,0,.80);
+        0 0 0 1px var(--wood-med) inset,
+        0 8px 32px rgba(61,40,23,.3),
+        0 2px 12px rgba(61,40,23,.2);
       overflow:hidden;
       position:relative;
     }
 
-    /* retro grid floor inside splash */
+    /* Tatami mat texture inside splash */
     .mancalaFrame::before{
       content:"";
       position:absolute;
-      inset:-40% -20% -10% -20%;
+      inset:0;
       background:
-        linear-gradient(to bottom, rgba(90,255,110,.0), rgba(90,255,110,.12)),
-        repeating-linear-gradient(to right, rgba(90,255,110,.0), rgba(90,255,110,.0) 44px, rgba(0,255,255,.10) 45px),
-        repeating-linear-gradient(to bottom, rgba(90,255,110,.0), rgba(90,255,110,.0) 44px, rgba(255,0,255,.10) 45px);
-      transform: perspective(700px) rotateX(68deg);
-      transform-origin: center bottom;
-      opacity: .34;
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139,119,101,.04) 2px, rgba(139,119,101,.04) 3px),
+        repeating-linear-gradient(90deg, transparent, transparent 120px, rgba(139,119,101,.06) 120px, rgba(139,119,101,.06) 122px);
+      opacity: .5;
       pointer-events:none;
     }
 
-    /* scanlines inside splash */
+    /* Paper texture inside splash */
     .mancalaFrame::after{
       content:"";
       position:absolute;
       inset:0;
-      background: repeating-linear-gradient(
-        to bottom,
-        rgba(0,0,0,0.00),
-        rgba(0,0,0,0.00) 2px,
-        rgba(0,0,0,0.18) 3px
-      );
-      opacity: .28;
-      mix-blend-mode: multiply;
+      background: 
+        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch"/></filter><rect width="200" height="200" filter="url(%23noise)" opacity="0.03"/></svg>');
+      opacity: .3;
       pointer-events:none;
     }
 
@@ -439,12 +427,13 @@
       justify-content:space-between;
       align-items:center;
       padding: 14px 18px;
-      border-bottom: 1px dashed rgba(183,255,183,.18);
+      border-bottom: 2px solid var(--wood-dark);
       color: var(--dim);
       font-size: 12px;
-      background: rgba(0,0,0,.35);
+      background: linear-gradient(180deg, rgba(212,196,176,.3), rgba(235,220,200,.5));
       position: relative;
       z-index: 2;
+      font-family: 'Times New Roman', serif;
     }
     .mancalaCenter{
       position: relative;
@@ -453,35 +442,37 @@
       text-align: center;
     }
     .mancalaKicker{
-      font-size: 12px;
-      color: rgba(183,255,183,.72);
-      letter-spacing: .18em;
+      font-size: 11px;
+      color: var(--dim);
+      letter-spacing: .25em;
       text-transform: uppercase;
       margin-bottom: 12px;
-      opacity: .9;
+      opacity: .85;
+      font-family: 'Times New Roman', serif;
     }
 
     .mancalaTitle{
       margin: 0;
       font-size: clamp(36px, 5.2vw, 76px);
-      letter-spacing: .03em;
+      letter-spacing: .08em;
       color: var(--fg);
       text-shadow:
-        0 0 10px rgba(90,255,110,.28),
-        0 0 22px rgba(0,255,255,.18),
-        0 0 30px rgba(255,0,255,.10);
-      animation: mancalaPulse 0.95s infinite;
+        0 2px 4px rgba(61,40,23,.2),
+        0 1px 2px rgba(61,40,23,.1);
+      animation: gentlePulse 4s infinite ease-in-out;
       position: relative;
       display:inline-block;
       overflow:hidden;
       padding: 0 .15em;
+      font-family: 'Times New Roman', serif;
+      font-weight: 400;
     }
-    @keyframes mancalaPulse{
-      0%,100%{ filter: brightness(1); transform: translateZ(0); }
-      50%{ filter: brightness(1.14); transform: scale(1.01); }
+    @keyframes gentlePulse{
+      0%,100%{ transform: scale(1); opacity: 1; }
+      50%{ transform: scale(1.01); opacity: 0.95; }
     }
 
-    /* NEW: laser sweep shine */
+    /* Subtle shine effect */
     .mancalaTitle::before{
       content:"";
       position:absolute;
@@ -491,18 +482,17 @@
       width: 44%;
       background: linear-gradient(90deg,
         transparent,
-        rgba(0,255,255,.28),
-        rgba(255,0,255,.22),
+        rgba(250,247,240,.3),
+        rgba(235,220,200,.25),
         transparent
       );
-      filter: blur(.2px);
-      mix-blend-mode: screen;
+      mix-blend-mode: overlay;
       pointer-events:none;
-      animation: mancalaSweep 1.05s linear infinite;
+      animation: subtleSweep 5s linear infinite;
       transform: skewX(-18deg);
-      opacity: .95;
+      opacity: .7;
     }
-    @keyframes mancalaSweep{
+    @keyframes subtleSweep{
       0%   { transform: translateX(-140%) skewX(-18deg); }
       100% { transform: translateX(420%)  skewX(-18deg); }
     }
@@ -510,61 +500,63 @@
     .mancalaSub{
       margin-top: 12px;
       font-size: 13px;
-      color: rgba(183,255,183,.70);
+      color: var(--dim);
+      font-family: 'Times New Roman', serif;
     }
 
     .mancalaBarWrap{
       width: min(560px, 92%);
       height: 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(183,255,183,.22);
-      background: rgba(0,0,0,.35);
+      border-radius: 2px;
+      border: 2px solid var(--wood-dark);
+      background: rgba(212,196,176,.3);
       margin: 24px auto 0;
       overflow: hidden;
-      box-shadow: 0 0 0 1px rgba(90,255,110,.05) inset;
+      box-shadow: inset 0 1px 3px rgba(61,40,23,.15);
     }
     .mancalaBar{
       height: 100%;
       width: 0%;
-      background: rgba(90,255,110,.78);
-      box-shadow: 0 0 18px rgba(90,255,110,.22);
+      background: linear-gradient(90deg, var(--wood-med), var(--wood-dark));
+      box-shadow: 0 0 8px rgba(139,119,101,.25);
       transition: width 120ms linear;
     }
 
     .mancalaCountdown{
       margin-top: 16px;
       font-size: 12px;
-      color: rgba(183,255,183,.70);
-      opacity: .92;
+      color: var(--dim);
+      opacity: .85;
       user-select:none;
+      font-family: 'Times New Roman', serif;
     }
     .mancalaHint{
-      opacity: .55;
+      opacity: .6;
       padding-left: 8px;
     }
 
-    /* NEW: INSERT COIN blink */
+    /* Traditional "ENTER" prompt */
     .insertCoin{
       position:absolute;
       right: 16px;
       bottom: 14px;
       z-index: 3;
-      font-size: 12px;
-      color: rgba(255,191,0,.92);
-      border: 1px solid rgba(255,191,0,.35);
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(0,0,0,.25);
-      letter-spacing: .14em;
+      font-size: 11px;
+      color: var(--wood-dark);
+      border: 2px solid var(--wood-dark);
+      padding: 6px 12px;
+      border-radius: 3px;
+      background: rgba(250,247,240,.7);
+      letter-spacing: .2em;
       text-transform: uppercase;
-      text-shadow: 0 0 12px rgba(255,191,0,.22);
-      animation: coinBlink 1.0s steps(1,end) infinite;
+      animation: gentleBlink 2s ease-in-out infinite;
       user-select:none;
       pointer-events:none;
+      font-family: 'Times New Roman', serif;
     }
-    @keyframes coinBlink{
-      0%,49%{opacity:.18}
-      50%,100%{opacity:.78}
+    @keyframes gentleBlink{
+      0%,100%{opacity:.4}
+      50%{opacity:.85}
     }
 
     @media (prefers-reduced-motion: reduce){
@@ -581,33 +573,33 @@
   <div id="mancalaSplash" aria-live="polite" aria-label="Mancala splash screen">
     <div class="mancalaFrame">
       <div class="mancalaTopline">
-        <span>GITL://BOOT</span>
-        <span>v80s</span>
+        <span>GITL://始まり</span>
+        <span>静寂版</span>
       </div>
 
       <div class="mancalaCenter">
-        <div class="mancalaKicker">TRANSMISSION RECEIVED</div>
-        <h1 class="mancalaTitle">MANCALA COMING SOON!!</h1>
-        <div class="mancalaSub">green terminal hype • neon grid • zero apologies</div>
+        <div class="mancalaKicker">A Moment of Anticipation</div>
+        <h1 class="mancalaTitle">MANCALA COMING SOON</h1>
+        <div class="mancalaSub">Traditional Japanese aesthetic • Mindful gameplay • Zen focus</div>
 
         <div class="mancalaBarWrap" aria-hidden="true">
           <div class="mancalaBar" id="mancalaBar"></div>
         </div>
 
         <div class="mancalaCountdown">
-          entering reality in <span id="mancalaT">10</span>s
-          <span class="mancalaHint">(tap/any key to skip)</span>
+          Beginning in <span id="mancalaT">10</span>s
+          <span class="mancalaHint">(press any key to continue)</span>
         </div>
       </div>
 
-      <div class="insertCoin" aria-hidden="true">INSERT COIN</div>
+      <div class="insertCoin" aria-hidden="true">PRESS TO ENTER</div>
     </div>
   </div>
 
-  <!-- Floating 80s shapes -->
-  <div class="retro-shape shape-1"></div>
-  <div class="retro-shape shape-2"></div>
-  <div class="retro-shape shape-3"></div>
+  <!-- Traditional decorative elements -->
+  <div class="zen-element scroll-1"></div>
+  <div class="zen-element bamboo-1"></div>
+  <div class="zen-element stone-1"></div>
 
   <div class="stage">
     <div class="grid">
@@ -616,53 +608,53 @@
           <div class="dots" aria-hidden="true">
             <span class="dot"></span><span class="dot"></span><span class="dot"></span>
           </div>
-          <div class="title">guyintheloop.com — observatory.v2.RADICAL</div>
+          <div class="title">guyintheloop.com — 静寂の間 (Room of Tranquility)</div>
         </div>
 
         <div class="boot" aria-label="boot log">
-          <div class="line">[BOOT] initializing interface…</div>
-          <div class="line">[CHK ] curiosity: present</div>
-          <div class="line">[CHK ] certainty: optional</div>
-          <div class="line retro-inject">[80s ] N E O N: loading…</div>
-          <div class="line">[NET ] signal acquisition: in progress</div>
-          <div class="line">[SYS ] norms: examined (not adopted by default)</div>
-          <div class="line">[SAFE] humility lock: engaged</div>
-          <div class="line">[OK  ] continue ▸</div>
+          <div class="line">[INIT] Preparing contemplative space…</div>
+          <div class="line">[CHK ] Mindfulness: present</div>
+          <div class="line">[CHK ] Hurry: absent</div>
+          <div class="line zen-highlight">[ZEN ] Harmony: establishing…</div>
+          <div class="line">[PATH] Journey inward: beginning</div>
+          <div class="line">[SYS ] Expectations: set aside gently</div>
+          <div class="line">[SAFE] Presence: engaged</div>
+          <div class="line">[OK  ] Continue in stillness ▸</div>
         </div>
 
         <div class="main">
           <h1>GUY IN THE LOOP<span class="cursor" aria-hidden="true"></span></h1>
-          <div class="sub">low noise · high signal · <span class="hype">MAXIMUM OVERDRIVE</span></div>
+          <div class="sub">Quiet contemplation · Mindful action · <span class="hype">Zen Simplicity</span></div>
 
           <div class="block">
             <p>
-              A quiet corner for people who like systems — and also like asking
-              why those systems keep turning into cages.
+              A tranquil space for those who appreciate thoughtful systems — 
+              and the wisdom to question when they no longer serve.
             </p>
             <p class="muted">
-              I build small experiments around LLMs and automation.
-              Not to "win" the future — just to make it <span class="hype">38% MORE RADICAL</span>.
+              I craft mindful experiments with AI and automation.
+              Not to dominate the future — but to <span class="hype">harmonize with it</span>.
             </p>
           </div>
 
           <div class="tags" aria-label="topics">
-            <span class="tag retro">llms</span>
-            <span class="tag">ai systems</span>
-            <span class="tag retro">automation</span>
-            <span class="tag">sensemaking</span>
-            <span class="tag retro">anti-bullshit engineering</span>
+            <span class="tag zen">mindful ai</span>
+            <span class="tag">thoughtful systems</span>
+            <span class="tag zen">automation</span>
+            <span class="tag">clarity</span>
+            <span class="tag zen">zen engineering</span>
           </div>
 
           <div class="status" aria-label="status">
-status: quiet build
-signal: intermittent
-output: soon (when it behaves)
+status: quiet reflection
+signal: steady
+output: when ready (no hurry)
           </div>
 
           <div class="update-notice">
-            ⚡ <strong>SYSTEM MIGRATION ACTIVE</strong> ⚡<br>
-            Converting terminal minimalism → CyberDad™ Aesthetic<br>
-            Progress: 47% | ETA: when the vibes align
+            ⌛ <strong>Traditional Transition</strong> ⌛<br>
+            Embracing Japanese Zen aesthetic and pre-1900 simplicity<br>
+            Progress: Ongoing | Arrival: In its own time
           </div>
         </div>
       </div>
