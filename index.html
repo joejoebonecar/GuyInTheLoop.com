@@ -673,31 +673,4 @@ output: when ready (no hurry)
 
       function hide(){
         splash.classList.add("fade-out");
-        setTimeout(() => { splash.style.display = "none"; }, 560);
-        splash.removeEventListener("click", hide);
-        window.removeEventListener("keydown", hide);
-      }
-
-      // Tap/click or any key to skip
-      splash.addEventListener("click", hide);
-      window.addEventListener("keydown", hide);
-
-      function tick(now){
-        const elapsed = now - START;
-        const remaining = Math.max(0, DURATION_MS - elapsed);
-        const secs = Math.ceil(remaining / 1000);
-
-        if (tEl) tEl.textContent = String(secs);
-
-        const pct = Math.min(100, (elapsed / DURATION_MS) * 100);
-        if (bar) bar.style.width = pct.toFixed(1) + "%";
-
-        if (elapsed >= DURATION_MS) hide();
-        else requestAnimationFrame(tick);
-      }
-
-      requestAnimationFrame(tick);
-    })();
-  </script>
-</body>
-</html>
+        
