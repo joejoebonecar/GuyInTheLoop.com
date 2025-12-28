@@ -4,17 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>Mancala - Cherry Blossom</title>
+  <title>Mancala - Traditional Japanese Room</title>
   <style>
     :root {
-      --bg: #fff5f7;
-      --fg: #d4738c;
-      --dim: rgba(212, 115, 140, 0.7);
-      --line: rgba(255, 182, 193, 0.3);
-      --card: rgba(255, 240, 245, 0.9);
-      --glow: rgba(255, 182, 193, 0.4);
-      --accent: #ffb7c5;
-      --warm: #ffd4e5;
+      /* Traditional Japanese pre-1900 color palette */
+      --bg: #f5e6d3;
+      --fg: #3d2817;
+      --dim: rgba(61, 40, 23, 0.75);
+      --line: rgba(139, 119, 101, 0.3);
+      --card: rgba(235, 220, 200, 0.9);
+      --glow: rgba(139, 119, 101, 0.2);
+      --accent: #8b7765;
+      --warm: #d4c4b0;
+      --wood-dark: #4a3528;
     }
 
     * {
@@ -30,12 +32,16 @@
 
     body {
       background:
-        radial-gradient(circle at 20% 30%, rgba(255, 183, 197, 0.15), transparent 40%),
-        radial-gradient(circle at 80% 70%, rgba(255, 212, 229, 0.15), transparent 40%),
-        linear-gradient(135deg, #fff8fa 0%, #ffe8f0 50%, #fff5f7 100%);
+        /* Tatami mat texture */
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139,119,101,.06) 2px, rgba(139,119,101,.06) 3px),
+        repeating-linear-gradient(90deg, transparent, transparent 120px, rgba(139,119,101,.08) 120px, rgba(139,119,101,.08) 122px),
+        /* Soft ambient lighting */
+        radial-gradient(ellipse at 20% 30%, rgba(250,247,240,.2), transparent 40%),
+        radial-gradient(ellipse at 80% 70%, rgba(201,184,150,.15), transparent 40%),
+        linear-gradient(135deg, #f0e8d8 0%, #ebe0d0 50%, #f5e6d3 100%);
       color: var(--fg);
-      font-family: 'Noto Sans JP', 'Hiragino Sans', system-ui, -apple-system, sans-serif;
-      letter-spacing: 0.01em;
+      font-family: 'Times New Roman', 'Noto Serif JP', 'Yu Mincho', serif;
+      letter-spacing: 0.02em;
     }
 
     #gameContainer {
@@ -64,9 +70,9 @@
       left: 0;
       right: 0;
       padding: 16px 20px;
-      background: rgba(255, 240, 245, 0.85);
+      background: rgba(235, 220, 200, 0.9);
       backdrop-filter: blur(10px);
-      border-bottom: 1px solid var(--line);
+      border-bottom: 2px solid var(--wood-dark);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -93,20 +99,21 @@
     .btn {
       font: inherit;
       color: var(--fg);
-      background: rgba(255, 240, 245, 0.9);
-      border: 1px solid var(--line);
-      border-radius: 12px;
+      background: rgba(235, 220, 200, 0.95);
+      border: 2px solid var(--wood-dark);
+      border-radius: 4px;
       padding: 10px 18px;
       cursor: pointer;
       transition: all 0.3s ease;
       pointer-events: auto;
-      box-shadow: 0 2px 8px rgba(255, 183, 197, 0.2);
+      box-shadow: 0 2px 6px rgba(61, 40, 23, 0.15);
+      font-family: 'Times New Roman', serif;
     }
 
     .btn:hover {
       border-color: var(--accent);
       background: var(--warm);
-      box-shadow: 0 4px 12px rgba(255, 183, 197, 0.3);
+      box-shadow: 0 3px 10px rgba(61, 40, 23, 0.25);
       transform: translateY(-1px);
     }
 
@@ -126,9 +133,9 @@
       left: 0;
       right: 0;
       padding: 20px;
-      background: rgba(255, 240, 245, 0.85);
+      background: rgba(235, 220, 200, 0.9);
       backdrop-filter: blur(10px);
-      border-top: 1px solid var(--line);
+      border-top: 2px solid var(--wood-dark);
       text-align: center;
     }
 
@@ -151,18 +158,19 @@
       bottom: 100px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(250, 247, 240, 0.95);
       backdrop-filter: blur(10px);
-      border: 2px solid var(--accent);
-      border-radius: 16px;
+      border: 2px solid var(--wood-dark);
+      border-radius: 4px;
       padding: 18px 28px;
       font-size: 16px;
       font-weight: 500;
       color: var(--fg);
-      box-shadow: 0 8px 24px rgba(255, 183, 197, 0.3);
+      box-shadow: 0 4px 16px rgba(61, 40, 23, 0.25);
       display: none;
       pointer-events: none;
       z-index: 200;
+      font-family: 'Times New Roman', serif;
     }
 
     #notification.show {
@@ -649,21 +657,21 @@
       STONE_SIZE_MAX: 0.24,
       STONE_COLOR_VARIATION: 0.15,     // 0-1, how much color varies
 
-      // Cherry Blossom Glow (replaces neon tubes)
-      SAKURA_GLOW_INTENSITY: 0.5,
-      SAKURA_GLOW_RANGE: 10,
+      // Traditional Japanese Room Ambient Glow
+      ZEN_GLOW_INTENSITY: 0.3,
+      ZEN_GLOW_RANGE: 12,
 
       // Wireframe
       WIREFRAME_ENABLED: true,
       WIREFRAME_LINE_WIDTH: 1,
 
-      // Japanese Cherry Blossom Color Palette
-      WOOD_BASE_COLOR: 0xf5e6d3,       // Light hinoki wood (pale blonde)
-      WOOD_GRAIN_COLOR: 0xd4c4b0,      // Subtle wood grain
-      WOOD_DARK_COLOR: 0xb8a895,       // Dark wood accents
-      ACCENT_COLOR: 0xffb7c5,          // Cherry blossom pink
-      SAKURA_PINK: 0xffd4e5,           // Pale sakura
-      SOFT_ROSE: 0xd4738c,             // Soft rose
+      // Traditional Japanese Wood Colors (Pre-1900)
+      WOOD_BASE_COLOR: 0xd4c4b0,       // Aged hinoki/cypress wood
+      WOOD_GRAIN_COLOR: 0xb8a895,      // Natural wood grain
+      WOOD_DARK_COLOR: 0x8b7765,       // Deep aged wood
+      ACCENT_COLOR: 0x8b7765,          // Traditional wood accent
+      TATAMI_COLOR: 0xc9b896,          // Tatami mat
+      SHOJI_COLOR: 0xfaf7f0,           // Shoji screen
 
       // Natural Stone Colors
       STONE_COLORS: [
@@ -712,10 +720,10 @@
     let textSprites = []; // For stone count labels
 
     function initThreeJS() {
-      // Scene - Light Japanese background
+      // Scene - Traditional Japanese room ambiance
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0xfff8fa);  // Pale pink wash
-      scene.fog = new THREE.Fog(0xfff5f7, 30, 60);   // Soft distant fog
+      scene.background = new THREE.Color(0xf5e6d3);  // Warm tatami/wood color
+      scene.fog = new THREE.Fog(0xebe0d0, 35, 65);   // Subtle depth fog
       animationClock = new THREE.Clock();
 
       // Camera - Fixed 1280x720 aspect ratio
@@ -734,16 +742,16 @@
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-      // Soft Japanese Lighting (like paper lantern / shoji screen)
-      const ambientLight = new THREE.AmbientLight(0xfff8f0, 0.7);
+      // Warm ambient light (traditional oil lamp / candle ambiance)
+      const ambientLight = new THREE.AmbientLight(0xfff0e6, 0.65);
       scene.add(ambientLight);
 
-      // Hemisphere light (sky/ground bounce - warm Japanese aesthetic)
-      const hemiLight = new THREE.HemisphereLight(0xfff0f5, 0xffd4e5, 0.5);
+      // Hemisphere light (warm earth tones - tatami floor reflection)
+      const hemiLight = new THREE.HemisphereLight(0xfff5e8, 0xd4c4b0, 0.45);
       scene.add(hemiLight);
 
-      // Main light (soft daylight through shoji screen)
-      const mainLight = new THREE.DirectionalLight(0xfff5e6, 0.6);
+      // Main light (soft natural daylight through shoji screens)
+      const mainLight = new THREE.DirectionalLight(0xfff8f0, 0.55);
       mainLight.position.set(3, 8, 5);
       mainLight.castShadow = true;
       mainLight.shadow.mapSize.width = 2048;
@@ -757,19 +765,19 @@
       mainLight.shadow.bias = -0.0005;
       scene.add(mainLight);
 
-      // Fill light (cool reflected light)
-      const fillLight = new THREE.DirectionalLight(0xffe8f5, 0.35);
+      // Fill light (reflected from tatami and wood surfaces)
+      const fillLight = new THREE.DirectionalLight(0xf5e6d3, 0.3);
       fillLight.position.set(-4, 4, -3);
       scene.add(fillLight);
 
-      // Soft rim light for depth
-      const rimLight = new THREE.DirectionalLight(0xffd4e5, 0.25);
+      // Soft rim light for depth (traditional paper lantern glow)
+      const rimLight = new THREE.DirectionalLight(0xfff0e0, 0.2);
       rimLight.position.set(0, 3, -8);
       scene.add(rimLight);
 
       // Create board
       createBoard();
-      createSakuraGlow();
+      createTraditionalAmbiance();
 
       // Handle resize
       window.addEventListener('resize', onWindowResize);
@@ -997,10 +1005,10 @@
 
       group.add(pit);
 
-      // Wireframe edges
+      // Wireframe edges - uniform traditional color
       const edges = new THREE.EdgesGeometry(geometry);
       const edgeMaterial = new THREE.LineBasicMaterial({
-        color: isPlayer ? CONFIG.ACCENT_COLOR : 0xffd700,
+        color: CONFIG.WOOD_DARK_COLOR,
         linewidth: 2
       });
       const wireframe = new THREE.LineSegments(edges, edgeMaterial);
@@ -1071,30 +1079,67 @@
       return group;
     }
 
-    function createSakuraGlow() {
-      // Subtle cherry blossom glow around board edges (replaces neon tubes)
+    function createTraditionalAmbiance() {
+      // Subtle warm glow around board (traditional oil lamp / candle effect)
       const glowColor = CONFIG.ACCENT_COLOR;
 
-      // Soft edge lights at corners for ambient cherry blossom effect
+      // Soft corner lights for ambient traditional room lighting
       const positions = [
-        { x: -6, z: -3, y: 1 },
-        { x: 6, z: -3, y: 1 },
-        { x: -6, z: 3, y: 1 },
-        { x: 6, z: 3, y: 1 }
+        { x: -6, z: -3, y: 1.5 },
+        { x: 6, z: -3, y: 1.5 },
+        { x: -6, z: 3, y: 1.5 },
+        { x: 6, z: 3, y: 1.5 }
       ];
 
       positions.forEach(pos => {
-        const edgeLight = new THREE.PointLight(glowColor, CONFIG.SAKURA_GLOW_INTENSITY, CONFIG.SAKURA_GLOW_RANGE);
+        const edgeLight = new THREE.PointLight(glowColor, CONFIG.ZEN_GLOW_INTENSITY, CONFIG.ZEN_GLOW_RANGE);
         edgeLight.position.set(pos.x, pos.y, pos.z);
         scene.add(edgeLight);
         neonTubes.push(edgeLight);  // Reuse array for cleanup
       });
 
-      // Central soft pink glow above board
-      const centerGlow = new THREE.PointLight(CONFIG.SAKURA_PINK, 0.3, 15);
-      centerGlow.position.set(0, 2, 0);
+      // Central warm glow above board (traditional hanging lantern effect)
+      const centerGlow = new THREE.PointLight(0xfff0e0, 0.25, 18);
+      centerGlow.position.set(0, 3, 0);
       scene.add(centerGlow);
       neonTubes.push(centerGlow);
+
+      // Add traditional room elements as simple 3D objects
+      addTraditionalRoomElements();
+    }
+
+    function addTraditionalRoomElements() {
+      // Add a subtle tatami floor plane
+      const floorGeometry = new THREE.PlaneGeometry(30, 30);
+      const floorMaterial = new THREE.MeshStandardMaterial({
+        color: CONFIG.TATAMI_COLOR,
+        roughness: 0.9,
+        metalness: 0.0
+      });
+      const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.y = -1.2;
+      floor.receiveShadow = true;
+      scene.add(floor);
+
+      // Add subtle tatami mat pattern lines
+      const linePositions = [];
+      for (let i = -15; i <= 15; i += 1.8) {
+        linePositions.push(
+          new THREE.Vector3(-15, -1.19, i),
+          new THREE.Vector3(15, -1.19, i),
+          new THREE.Vector3(i, -1.19, -15),
+          new THREE.Vector3(i, -1.19, 15)
+        );
+      }
+      const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePositions);
+      const lineMaterial = new THREE.LineBasicMaterial({
+        color: 0xb8a895,
+        opacity: 0.15,
+        transparent: true
+      });
+      const lines = new THREE.LineSegments(lineGeometry, lineMaterial);
+      scene.add(lines);
     }
 
     function updateStones() {
