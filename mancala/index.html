@@ -84,6 +84,7 @@
 
     <div class="panel" style="align-self: center; margin-bottom: 20px;">
       <div class="controls">
+        <button id="btn-undo">Undo</button>
         <button id="btn-restart">Restart</button>
         <button id="btn-sound">Sound: ON</button>
       </div>
@@ -98,7 +99,7 @@
       <p><strong>Select Game Mode:</strong></p>
       <div class="mode-select">
         <button onclick="startGame('pvp')">2 Players</button>
-        <button onclick="startGame('cpu')">Vs CPU</button>
+        <button onclick="startGame('cpu')">Vs CPU (Normal)</button>
       </div>
       <p style="font-size:0.8rem; margin-top:15px; color:#999">
         Pick a pit on your side (Bottom). Stones move counter-clockwise.<br>
@@ -111,6 +112,7 @@
 /**
  * AUDIO ENGINE
  * Uses Web Audio API to synthesize procedural wood/stone sounds.
+ * No external assets required.
  */
 const AudioEngine = (() => {
   let ctx = null;
@@ -123,10 +125,29 @@ const AudioEngine = (() => {
     if (ctx.state === 'suspended') ctx.resume();
   }
 
+  function playTone(freq, type, dur, vol) {
+    if (!enabled || !ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(vol, ctx.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + dur + 0.1);
+  }
+
   function playClack(pitchVar = 0) {
     if (!enabled || !ctx) return;
+    // Wood impact simulation: Bandpass filtered noise + fast sine decay
     const t = ctx.currentTime;
-    // Wood impact simulation
+    
+    // 1. The "Knock" (Sine with rapid pitch drop)
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     const freq = 800 + (Math.random() * 200) + pitchVar;
@@ -141,6 +162,21 @@ const AudioEngine = (() => {
     gain.connect(ctx.destination);
     osc.start();
     osc.stop(t + 0.15);
+
+    // 2. The "Click" (High freq impact)
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(2200 + Math.random()*500, t);
+    
+    gain2.gain.setValueAtTime(0, t);
+    gain2.gain.linearRampToValueAtTime(0.1, t + 0.002);
+    gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start();
+    osc2.stop(t + 0.1);
   }
 
   function playChime() {
@@ -166,7 +202,7 @@ const AudioEngine = (() => {
 })();
 
 /**
- * 3D VISUALS & LOGIC
+ * 3D VISUALS
  */
 const App = (() => {
   let scene, camera, renderer, raycaster, mouse;
@@ -176,7 +212,7 @@ const App = (() => {
   // Game Logic State
   const STATE = {
     board: Array(14).fill(4),
-    turn: 0, // 0 = Player (Bottom), 1 = Opponent/CPU (Top)
+    turn: 0, // 0 = Player (Bottom), 1 = Opponent (Top)
     scores: [0, 0],
     animating: false,
     gameOver: false,
@@ -187,11 +223,13 @@ const App = (() => {
   STATE.board[6] = 0; STATE.board[13] = 0; // Clear stores
 
   function init() {
+    // 1. Setup Scene
     const canvas = document.getElementById('gameCanvas');
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color('#e6e2d3');
@@ -201,7 +239,7 @@ const App = (() => {
     camera.position.set(0, 16, 12);
     camera.lookAt(0, 0, 1);
 
-    // Lighting
+    // 2. Lighting (Warm, interior style)
     const ambient = new THREE.AmbientLight(0xfff5e6, 0.6);
     scene.add(ambient);
 
@@ -209,9 +247,10 @@ const App = (() => {
     dirLight.position.set(5, 12, 5);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.set(2048, 2048);
+    dirLight.shadow.bias = -0.0005;
     scene.add(dirLight);
     
-    // Materials
+    // 3. Materials
     const woodMap = createProceduralWood();
     const woodMat = new THREE.MeshStandardMaterial({ 
       map: woodMap, color: 0x8c6a4a, roughness: 0.6, metalness: 0.1 
@@ -220,29 +259,36 @@ const App = (() => {
       map: woodMap, color: 0x5c4033, roughness: 0.5, metalness: 0.1 
     });
 
-    // Board Geometry
+    // 4. Build Board
     boardGroup = new THREE.Group();
     scene.add(boardGroup);
 
-    const slab = new THREE.Mesh(new THREE.BoxGeometry(16, 1.2, 6), woodMat);
+    // Main slab
+    const slabGeo = new THREE.BoxGeometry(16, 1.2, 6);
+    // Round the box visually using a modifier or just smooth shading? Box is fine for now, let's add a rim.
+    const slab = new THREE.Mesh(slabGeo, woodMat);
     slab.castShadow = true;
     slab.receiveShadow = true;
     slab.position.y = -0.6;
     boardGroup.add(slab);
 
+    // Create Pits (Boolean subtraction is hard in vanilla Three.js, so we build up)
+    // We will place "Rims" on top of the slab to denote pits.
     createPits(woodDarkMat);
 
-    // Floor
-    const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(60, 60), 
-      new THREE.MeshStandardMaterial({ color: 0xd6cebd, roughness: 0.9, map: createTatamiTex() })
-    );
+    // 5. Tatami Floor
+    const floorGeo = new THREE.PlaneGeometry(60, 60);
+    const floorMat = new THREE.MeshStandardMaterial({ 
+      color: 0xd6cebd, roughness: 0.9, 
+      map: createTatamiTex() 
+    });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
     floor.position.y = -1.25;
     floor.receiveShadow = true;
     scene.add(floor);
 
-    // Interaction
+    // 6. Interaction
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2();
     window.addEventListener('resize', onResize);
@@ -252,6 +298,7 @@ const App = (() => {
         onClick(e.touches[0]);
     }, {passive: false});
 
+    // Start Loop
     animate();
     updateHUD();
   }
@@ -261,11 +308,15 @@ const App = (() => {
     const canvas = document.createElement('canvas');
     canvas.width = 512; canvas.height = 512;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#bfa'; ctx.fillRect(0,0,512,512);
+    ctx.fillStyle = '#bfa';
+    ctx.fillRect(0,0,512,512);
+    
+    // Noise
     for(let i=0; i<6000; i++){
         ctx.fillStyle = `rgba(100, 70, 40, ${Math.random()*0.08})`;
         ctx.fillRect(Math.random()*512, 0, Math.random()*2+1, 512);
     }
+    // Grain curves
     ctx.strokeStyle = 'rgba(60, 40, 20, 0.05)';
     ctx.lineWidth = 2;
     for(let i=0; i<20; i++){
@@ -274,14 +325,16 @@ const App = (() => {
         ctx.bezierCurveTo(Math.random()*512, 150, Math.random()*512, 350, Math.random()*512, 512);
         ctx.stroke();
     }
-    return new THREE.CanvasTexture(canvas);
+    const tex = new THREE.CanvasTexture(canvas);
+    return tex;
   }
 
   function createTatamiTex() {
     const canvas = document.createElement('canvas');
     canvas.width = 256; canvas.height = 256;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#eaddcf'; ctx.fillRect(0,0,256,256);
+    ctx.fillStyle = '#eaddcf';
+    ctx.fillRect(0,0,256,256);
     ctx.fillStyle = 'rgba(0,0,0,0.05)';
     for(let y=0; y<256; y+=4) ctx.fillRect(0, y, 256, 1);
     const tex = new THREE.CanvasTexture(canvas);
@@ -290,16 +343,22 @@ const App = (() => {
     return tex;
   }
 
+  // --- Board Construction ---
   function createPits(mat) {
+    // 6 pits bottom (0-5), Store Right (6), 6 pits top (7-12), Store Left (13)
     const positions = [];
-    // Pits 0-5 (Bottom/Player)
+    
+    // Bottom Row (Player 0) - Left to Right
     for(let i=0; i<6; i++) positions.push({x: -4.5 + i*1.8, z: 1.5, id: i});
-    // Store 6
-    positions.push({x: 6.5, z: 0, scale: 1.5, id: 6});
-    // Pits 7-12 (Top/CPU)
+    
+    // Right Store
+    positions.push({x: 6.5, z: 0, scale: 1.5, id: 6}); // Player 0 Store
+    
+    // Top Row (Player 1) - Right to Left
     for(let i=0; i<6; i++) positions.push({x: 4.5 - i*1.8, z: -1.5, id: 7+i});
-    // Store 13
-    positions.push({x: -6.5, z: 0, scale: 1.5, id: 13});
+    
+    // Left Store
+    positions.push({x: -6.5, z: 0, scale: 1.5, id: 13}); // Player 1 Store
 
     const geo = new THREE.TorusGeometry(0.7, 0.15, 16, 32);
     const hitGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.5, 16);
@@ -311,9 +370,12 @@ const App = (() => {
       rim.position.set(p.x, 0.05, p.z);
       if(p.scale) rim.scale.set(1.2, 1.5, 1);
       else rim.scale.set(1, 1.1, 1);
-      rim.castShadow = true; rim.receiveShadow = true;
+      
+      rim.castShadow = true;
+      rim.receiveShadow = true;
       boardGroup.add(rim);
 
+      // Click trigger
       const hit = new THREE.Mesh(hitGeo, hitMat);
       hit.position.set(p.x, 0.2, p.z);
       if(p.scale) hit.scale.set(1.5, 1, 1.5);
@@ -321,23 +383,37 @@ const App = (() => {
       boardGroup.add(hit);
       clickableObjects.push(hit);
 
-      pits[p.id] = { pos: new THREE.Vector3(p.x, 0, p.z), stones: [] };
-      if(p.id !== 6 && p.id !== 13) spawnStones(p.id, 4);
+      // Data storage
+      pits[p.id] = { 
+        pos: new THREE.Vector3(p.x, 0, p.z), 
+        stones: [] 
+      };
+      
+      // Initial Stones
+      if(p.id !== 6 && p.id !== 13) {
+        spawnStones(p.id, 4);
+      }
     });
   }
 
-  // --- Stones ---
-  const stoneGeo = new THREE.DodecahedronGeometry(0.22, 1);
+  // --- Stone Logic ---
+  const stoneGeo = new THREE.DodecahedronGeometry(0.22, 1); // Low poly pebble
+  // Squash it slightly to look like a Go stone
   stoneGeo.scale(1, 0.6, 1);
-  const stoneMat1 = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.4, metalness: 0.1 });
-  const stoneMat2 = new THREE.MeshStandardMaterial({ color: 0xfffff0, roughness: 0.4, metalness: 0.1 });
+
+  const stoneMat1 = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.4, metalness: 0.1 }); // Slate
+  const stoneMat2 = new THREE.MeshStandardMaterial({ color: 0xfffff0, roughness: 0.4, metalness: 0.1 }); // Shell
 
   function spawnStones(pitIndex, count) {
     for(let i=0; i<count; i++) {
       const mat = Math.random() > 0.5 ? stoneMat1 : stoneMat2;
       const mesh = new THREE.Mesh(stoneGeo, mat);
-      mesh.castShadow = true; mesh.receiveShadow = true;
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      
+      // Organic placement
       placeStoneInPit(mesh, pits[pitIndex].pos, pits[pitIndex].stones.length, pitIndex === 6 || pitIndex === 13);
+      
       boardGroup.add(mesh);
       pits[pitIndex].stones.push(mesh);
       stones.push(mesh);
@@ -345,11 +421,20 @@ const App = (() => {
   }
 
   function placeStoneInPit(mesh, center, index, isStore) {
+    // Random offset within circle
     const radius = isStore ? 0.8 : 0.45;
     const r = Math.sqrt(Math.random()) * radius;
     const theta = Math.random() * Math.PI * 2;
+    
+    // Stack height based on index roughly
     const y = -0.5 + (index * 0.12) + (Math.random() * 0.05);
-    mesh.position.set(center.x + r * Math.cos(theta), y, center.z + r * Math.sin(theta));
+    
+    mesh.position.set(
+      center.x + r * Math.cos(theta),
+      y,
+      center.z + r * Math.sin(theta)
+    );
+    
     mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
   }
 
@@ -357,49 +442,91 @@ const App = (() => {
   function moveStonesAnimated(fromPit, count) {
     return new Promise(async (resolve) => {
       STATE.animating = true;
-      const movingStones = pits[fromPit].stones.splice(0, count);
-      STATE.board[fromPit] = 0;
       
-      movingStones.forEach(s => gsap.to(s.position, { y: 2, duration: 0.3, ease: "back.out(1.7)" }));
+      // 1. Pick up stones
+      const movingStones = pits[fromPit].stones.splice(0, count); // Take all
+      STATE.board[fromPit] = 0; // Logic update
+      
+      // Visual pickup
+      movingStones.forEach(s => {
+        gsap.to(s.position, { y: 2, duration: 0.3, ease: "back.out(1.7)" });
+      });
       await wait(300);
 
       let currentPit = fromPit;
       let lastPit = -1;
 
+      // 2. Distribute loop
       for(let i=0; i<movingStones.length; i++) {
         const stone = movingStones[i];
+        
+        // Calculate next pit logic
         currentPit = (currentPit + 1) % 14;
         
-        // Skip Opponent Store
+        // Skip opponent store
         if(STATE.turn === 0 && currentPit === 13) currentPit = 0;
         else if(STATE.turn === 1 && currentPit === 6) currentPit = 7;
         
+        // Logic Update
         STATE.board[currentPit]++;
         
+        // Visual Drop
         const targetPitObj = pits[currentPit];
         const isStore = (currentPit === 6 || currentPit === 13);
+        
+        // Calculate organic landing spot
         const radius = isStore ? 0.8 : 0.45;
         const r = Math.sqrt(Math.random()) * radius;
         const theta = Math.random() * Math.PI * 2;
         const targetPos = new THREE.Vector3(
           targetPitObj.pos.x + r * Math.cos(theta),
-          -0.4 + (targetPitObj.stones.length * 0.12),
+          -0.4 + (targetPitObj.stones.length * 0.12), // Stack on existing
           targetPitObj.pos.z + r * Math.sin(theta)
         );
 
+        // Animate Trajectory (Parabolic)
         const dur = 0.4;
-        gsap.to(stone.position, { x: targetPos.x, z: targetPos.z, duration: dur, ease: "power1.inOut" });
-        gsap.to(stone.position, { y: 2.5, duration: dur/2, yoyo: true, repeat: 1, ease: "power1.out" });
-        gsap.to(stone.position, { y: targetPos.y, duration: dur/2, delay: dur/2, ease: "bounce.out", 
-          onComplete: () => AudioEngine.playClack(i*20)
+        gsap.to(stone.position, {
+          x: targetPos.x,
+          z: targetPos.z,
+          duration: dur,
+          ease: "power1.inOut"
         });
-        gsap.to(stone.rotation, { x: Math.random()*6, z: Math.random()*6, duration: dur });
+        
+        // Height arc
+        gsap.to(stone.position, {
+          y: 2.5,
+          duration: dur/2,
+          yoyo: true,
+          repeat: 1,
+          ease: "power1.out"
+        });
+        
+        // Final settle
+        gsap.to(stone.position, {
+          y: targetPos.y,
+          duration: dur/2,
+          delay: dur/2,
+          ease: "bounce.out",
+          onComplete: () => {
+             AudioEngine.playClack(i*20); // Pitch up slightly as we go
+          }
+        });
+
+        // Rotation for tumble effect
+        gsap.to(stone.rotation, {
+          x: Math.random()*6, z: Math.random()*6,
+          duration: dur,
+          ease: "none"
+        });
 
         targetPitObj.stones.push(stone);
         lastPit = currentPit;
-        updateHUD();
-        await wait(150);
+        
+        updateHUD(); // Live update numbers
+        await wait(150); // Speed of distribution
       }
+      
       resolve(lastPit);
     });
   }
@@ -408,46 +535,44 @@ const App = (() => {
   async function handleTurn(pitIndex) {
     if(STATE.animating || STATE.gameOver) return;
     
-    // Save history
+    // Save state for Undo
     STATE.history.push(JSON.parse(JSON.stringify({board: STATE.board, turn: STATE.turn})));
     
+    // 1. Move
     const stonesInHand = STATE.board[pitIndex];
     if(stonesInHand === 0) return;
     
     const lastPit = await moveStonesAnimated(pitIndex, stonesInHand);
     
-    // Rules
+    // 2. Rules
     let repeatTurn = false;
     const isMySide = (STATE.turn === 0 && lastPit < 6) || (STATE.turn === 1 && lastPit > 6 && lastPit < 13);
     const myStore = STATE.turn === 0 ? 6 : 13;
     
+    // Rule: Land in own store -> Repeat turn
     if(lastPit === myStore) {
       repeatTurn = true;
       AudioEngine.playChime();
     }
     
+    // Rule: Capture (Land in empty pit on own side)
     if(isMySide && STATE.board[lastPit] === 1 && lastPit !== myStore) {
       const oppIndex = 12 - lastPit;
-      if(STATE.board[oppIndex] > 0) await captureStones(lastPit, oppIndex, myStore);
+      if(STATE.board[oppIndex] > 0) {
+        await captureStones(lastPit, oppIndex, myStore);
+      }
     }
     
     checkWinCondition();
 
-    if(!STATE.gameOver) {
-        if (!repeatTurn) {
-            // Normal switch
-            STATE.turn = 1 - STATE.turn;
-            updateHUD();
-            if(STATE.turn === 1 && STATE.mode === 'cpu') {
-                setTimeout(cpuTurn, 1000);
-            }
-        } else {
-            // Repeat Turn - CPU must go again if it's CPU's turn!
-            updateHUD();
-            if(STATE.turn === 1 && STATE.mode === 'cpu') {
-                setTimeout(cpuTurn, 1000);
-            }
-        }
+    if(!repeatTurn && !STATE.gameOver) {
+      STATE.turn = 1 - STATE.turn;
+      updateHUD();
+      if(STATE.turn === 1 && STATE.mode === 'cpu') {
+        setTimeout(cpuTurn, 1000);
+      }
+    } else {
+      updateHUD();
     }
     
     STATE.animating = false;
@@ -455,6 +580,7 @@ const App = (() => {
 
   async function captureStones(myPit, oppPit, store) {
     AudioEngine.playChime();
+    // Move my stone and opp stones to store
     const countMy = STATE.board[myPit];
     const countOpp = STATE.board[oppPit];
     
@@ -462,6 +588,7 @@ const App = (() => {
     STATE.board[oppPit] = 0;
     STATE.board[store] += (countMy + countOpp);
     
+    // Visuals
     const stonesToMove = [...pits[myPit].stones, ...pits[oppPit].stones];
     pits[myPit].stones = [];
     pits[oppPit].stones = [];
@@ -469,10 +596,14 @@ const App = (() => {
     stonesToMove.forEach(s => {
       pits[store].stones.push(s);
       gsap.to(s.position, {
-        x: pits[store].pos.x, z: pits[store].pos.z, y: Math.random(),
-        duration: 0.8, ease: "back.inOut(1.2)"
+        x: pits[store].pos.x,
+        z: pits[store].pos.z,
+        y: Math.random(),
+        duration: 0.8,
+        ease: "back.inOut(1.2)"
       });
     });
+    
     await wait(800);
   }
 
@@ -482,9 +613,12 @@ const App = (() => {
     
     if(p1Empty || p2Empty) {
       STATE.gameOver = true;
+      // Collect remainders
       [0,1,2,3,4,5].forEach(i => { STATE.board[6] += STATE.board[i]; STATE.board[i]=0; });
       [7,8,9,10,11,12].forEach(i => { STATE.board[13] += STATE.board[i]; STATE.board[i]=0; });
       
+      // Visual Refresh needed to show cleared board? 
+      // For simplicity, just update HUD text
       const winner = STATE.board[6] > STATE.board[13] ? "Player 1 Wins!" : (STATE.board[13] > STATE.board[6] ? "Player 2 Wins!" : "It's a Tie!");
       document.getElementById('status').innerHTML = `<span style="color:#d9534f">${winner}</span>`;
       AudioEngine.playChime();
@@ -492,23 +626,18 @@ const App = (() => {
   }
 
   function cpuTurn() {
-    // Valid moves for CPU (pits 7-12)
+    // Simple AI: Prioritize free turns, then captures, then random
     const validMoves = [7,8,9,10,11,12].filter(i => STATE.board[i] > 0);
     if(validMoves.length === 0) return;
     
-    // 1. Check for free turn (Accurate Simulation)
+    // 1. Check for free turn
     let bestMove = validMoves.find(i => {
-      let stones = STATE.board[i];
-      let pos = i;
-      while (stones > 0) {
-        pos = (pos + 1) % 14;
-        if (pos === 6) continue; // CPU skips Player 1 Store (index 6)
-        stones--;
-      }
-      return pos === 13; // Lands exactly in CPU Store (index 13)
+      let end = (i + STATE.board[i]) % 14;
+      // Logic approximation
+      return end === 13;
     });
     
-    // 2. Fallback: Random
+    // 2. Random if no free turn
     if(bestMove === undefined) {
       bestMove = validMoves[Math.floor(Math.random() * validMoves.length)];
     }
@@ -516,13 +645,16 @@ const App = (() => {
     handleTurn(bestMove);
   }
 
+  // --- Utility ---
   function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
   function onClick(e) {
     if(STATE.animating || STATE.gameOver) return;
     if(STATE.turn === 1 && STATE.mode === 'cpu') return;
 
+    // Audio init on first interaction
     AudioEngine.init();
+
     const rect = renderer.domElement.getBoundingClientRect();
     mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -534,7 +666,7 @@ const App = (() => {
       const id = intersects[0].object.userData.id;
       // Validate Move
       if(STATE.turn === 0 && id >= 0 && id <= 5) handleTurn(id);
-      else if(STATE.turn === 1 && STATE.mode === 'pvp' && id >= 7 && id <= 12) handleTurn(id);
+      else if(STATE.turn === 1 && id >= 7 && id <= 12) handleTurn(id);
     }
   }
 
@@ -542,12 +674,7 @@ const App = (() => {
     document.getElementById('p1-score').innerText = `You: ${STATE.board[6]}`;
     document.getElementById('p2-score').innerText = `Opponent: ${STATE.board[13]}`;
     if(!STATE.gameOver) {
-      let txt = "";
-      if (STATE.mode === 'cpu') {
-         txt = STATE.turn === 0 ? "Your Turn" : "CPU Thinking...";
-      } else {
-         txt = STATE.turn === 0 ? "Player 1 Turn" : "Player 2 Turn";
-      }
+      const txt = STATE.turn === 0 ? "Your Turn" : (STATE.mode === 'cpu' ? "CPU Thinking..." : "Player 2 Turn");
       document.getElementById('status').innerText = txt;
     }
   }
@@ -558,33 +685,48 @@ const App = (() => {
     renderer.setSize(window.innerWidth, window.innerHeight);
   }
 
+  function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+  }
+
   function fullReset() {
+    // Clear meshes
     stones.forEach(s => boardGroup.remove(s));
     stones = [];
     pits.forEach(p => p.stones = []);
+    
+    // Reset State
     STATE.board = Array(14).fill(4);
     STATE.board[6]=0; STATE.board[13]=0;
     STATE.turn = 0;
     STATE.gameOver = false;
     STATE.animating = false;
+    
+    // Respawn visuals
     [0,1,2,3,4,5,7,8,9,10,11,12].forEach(i => spawnStones(i, 4));
     updateHUD();
   }
 
-  return { init, setMode: (m) => STATE.mode = m, reset: fullReset, toggleSound: AudioEngine.toggle };
+  return { init, setMode: (m) => STATE.mode = m, reset: fullReset, undo: () => alert("Undo not implemented in this visual demo yet!"), toggleSound: AudioEngine.toggle };
 })();
 
+// Global Hooks
 function startGame(mode) {
   document.getElementById('modal').classList.add('hidden');
   App.setMode(mode);
-  App.init();
+  App.init(); // Audio context starts here
 }
 
-document.getElementById('btn-restart').onclick = () => App.reset();
+document.getElementById('btn-restart').onclick = () => {
+    App.reset();
+};
 document.getElementById('btn-sound').onclick = (e) => {
     App.toggleSound();
     e.target.innerText = e.target.innerText.includes("ON") ? "Sound: OFF" : "Sound: ON";
 };
+
+// Initialize only the landing visual
 </script>
 </body>
 </html>
