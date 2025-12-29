@@ -19,31 +19,33 @@
     /* UI Overlay */
     #ui {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
-      display: flex; flex-direction: column; justify-content: space-between; padding: 20px; box-sizing: border-box;
+      display: flex; flex-direction: column; justify-content: space-between; padding: 12px; box-sizing: border-box;
     }
     .panel {
       pointer-events: auto;
       background: var(--ui-bg);
       backdrop-filter: blur(10px);
-      padding: 15px 25px;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      padding: 10px 20px;
+      border-radius: 10px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
       border: 1px solid rgba(0,0,0,0.05);
       text-align: center;
       transition: opacity 0.3s;
+      max-width: 500px;
+      align-self: center;
     }
-    h1 { margin: 0 0 5px 0; font-size: 1.4rem; letter-spacing: 0.05em; color: #2c241b; }
-    p { margin: 0; font-size: 0.9rem; color: #6b5d52; }
+    h1 { margin: 0 0 4px 0; font-size: 1.2rem; letter-spacing: 0.05em; color: #2c241b; }
+    p { margin: 0; font-size: 0.85rem; color: #6b5d52; }
     
     /* HUD */
-    .hud { display: flex; gap: 20px; justify-content: center; font-weight: bold; font-size: 1.1rem; }
-    .turn-indicator { color: var(--accent); font-style: italic; font-size: 0.9rem; margin-top: 5px; }
+    .hud { display: flex; gap: 15px; justify-content: center; font-weight: bold; font-size: 1rem; }
+    .turn-indicator { color: var(--accent); font-style: italic; font-size: 0.85rem; margin-top: 4px; }
 
     /* Controls */
-    .controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+    .controls { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
     button {
-      background: #f0ebe0; border: 1px solid #dcd6cb; padding: 8px 16px; border-radius: 6px;
-      color: #5c4d3c; cursor: pointer; font-family: inherit; font-weight: 600;
+      background: #f0ebe0; border: 1px solid #dcd6cb; padding: 6px 12px; border-radius: 6px;
+      color: #5c4d3c; cursor: pointer; font-family: inherit; font-weight: 600; font-size: 0.9rem;
       transition: all 0.2s ease;
     }
     button:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
@@ -63,9 +65,28 @@
     .card hr { border: 0; border-top: 1px solid #eee; margin: 20px 0; }
     
     canvas { display: block; outline: none; }
-    
+
     /* Fade transition */
     .hidden { opacity: 0; pointer-events: none; }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      #ui { padding: 8px; }
+      .panel { padding: 8px 15px; max-width: 95%; }
+      h1 { font-size: 1rem; }
+      .hud { font-size: 0.9rem; gap: 10px; }
+      .turn-indicator { font-size: 0.75rem; }
+      button { padding: 5px 10px; font-size: 0.8rem; }
+    }
+
+    @media (max-height: 600px) {
+      #ui { padding: 6px; }
+      .panel { padding: 6px 12px; }
+      h1 { font-size: 0.9rem; margin-bottom: 2px; }
+      .hud { font-size: 0.85rem; gap: 8px; }
+      .turn-indicator { font-size: 0.7rem; margin-top: 2px; }
+      button { padding: 4px 8px; font-size: 0.75rem; }
+    }
   </style>
 </head>
 <body>
@@ -82,7 +103,7 @@
       <div id="status" class="turn-indicator">Initialize...</div>
     </div>
 
-    <div class="panel" style="align-self: center; margin-bottom: 20px;">
+    <div class="panel">
       <div class="controls">
         <button id="btn-undo">Undo</button>
         <button id="btn-restart">Restart</button>
@@ -573,8 +594,12 @@ const App = (() => {
       }
     } else {
       updateHUD();
+      // If CPU got a repeat turn, trigger another CPU move
+      if(repeatTurn && !STATE.gameOver && STATE.turn === 1 && STATE.mode === 'cpu') {
+        setTimeout(cpuTurn, 1000);
+      }
     }
-    
+
     STATE.animating = false;
   }
 
