@@ -208,7 +208,7 @@ const AudioEngine = (() => {
     osc.type = 'sine';
     osc.frequency.setValueAtTime(523.25, t); // C5
     osc.frequency.setValueAtTime(659.25, t + 0.1); // E5
-    
+
     gain.gain.setValueAtTime(0, t);
     gain.gain.linearRampToValueAtTime(0.1, t + 0.1);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
@@ -219,7 +219,63 @@ const AudioEngine = (() => {
     osc.stop(t + 1.5);
   }
 
-  return { init, playClack, playChime, toggle: () => enabled = !enabled, isEnabled: () => enabled };
+  function playTurnEnd() {
+    if (!enabled || !ctx) return;
+    // Gentle wooden bowl sound - low pitched tone
+    const t = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(220, t); // A3
+    osc.frequency.exponentialRampToValueAtTime(200, t + 0.2);
+
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.08, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(t + 0.5);
+  }
+
+  function playExtraTurn() {
+    if (!enabled || !ctx) return;
+    // Brighter, more celebratory sound for extra turn
+    const t = ctx.currentTime;
+
+    // First note - C5
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(523.25, t);
+
+    gain1.gain.setValueAtTime(0, t);
+    gain1.gain.linearRampToValueAtTime(0.12, t + 0.05);
+    gain1.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start();
+    osc1.stop(t + 0.7);
+
+    // Second note - E5
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(659.25, t + 0.15);
+
+    gain2.gain.setValueAtTime(0, t + 0.15);
+    gain2.gain.linearRampToValueAtTime(0.1, t + 0.2);
+    gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
+
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(t + 0.15);
+    osc2.stop(t + 1.0);
+  }
+
+  return { init, playClack, playChime, playTurnEnd, playExtraTurn, toggle: () => enabled = !enabled, isEnabled: () => enabled };
 })();
 
 /**
@@ -364,20 +420,40 @@ const App = (() => {
     return tex;
   }
 
+  // --- Helper: Create number texture for badges ---
+  function createNumberTexture(number) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+
+    // Clear
+    ctx.clearRect(0, 0, 128, 128);
+
+    // Draw number
+    ctx.fillStyle = '#2c241b';
+    ctx.font = 'bold 80px Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(number.toString(), 64, 64);
+
+    return new THREE.CanvasTexture(canvas);
+  }
+
   // --- Board Construction ---
   function createPits(mat) {
     // 6 pits bottom (0-5), Store Right (6), 6 pits top (7-12), Store Left (13)
     const positions = [];
-    
+
     // Bottom Row (Player 0) - Left to Right
     for(let i=0; i<6; i++) positions.push({x: -4.5 + i*1.8, z: 1.5, id: i});
-    
+
     // Right Store
     positions.push({x: 6.5, z: 0, scale: 1.5, id: 6}); // Player 0 Store
-    
+
     // Top Row (Player 1) - Right to Left
     for(let i=0; i<6; i++) positions.push({x: 4.5 - i*1.8, z: -1.5, id: 7+i});
-    
+
     // Left Store
     positions.push({x: -6.5, z: 0, scale: 1.5, id: 13}); // Player 1 Store
 
@@ -385,13 +461,21 @@ const App = (() => {
     const hitGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.5, 16);
     const hitMat = new THREE.MeshBasicMaterial({ visible: false });
 
+    // Badge materials
+    const badgeGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.1, 16);
+    const badgeMat = new THREE.MeshStandardMaterial({
+      color: 0x8c6a4a,
+      roughness: 0.5,
+      metalness: 0.1
+    });
+
     positions.forEach(p => {
       const rim = new THREE.Mesh(geo, mat);
       rim.rotation.x = Math.PI/2;
       rim.position.set(p.x, 0.05, p.z);
       if(p.scale) rim.scale.set(1.2, 1.5, 1);
       else rim.scale.set(1, 1.1, 1);
-      
+
       rim.castShadow = true;
       rim.receiveShadow = true;
       boardGroup.add(rim);
@@ -404,12 +488,31 @@ const App = (() => {
       boardGroup.add(hit);
       clickableObjects.push(hit);
 
+      // Counter Badge
+      const badge = new THREE.Mesh(badgeGeo, badgeMat.clone());
+      badge.position.set(p.x, 1.2, p.z - 0.8);
+      badge.castShadow = true;
+      badge.receiveShadow = true;
+      boardGroup.add(badge);
+
+      // Number sprite on badge
+      const spriteMat = new THREE.SpriteMaterial({
+        map: createNumberTexture(STATE.board[p.id]),
+        transparent: true
+      });
+      const sprite = new THREE.Sprite(spriteMat);
+      sprite.scale.set(0.5, 0.5, 1);
+      sprite.position.set(p.x, 1.3, p.z - 0.8);
+      boardGroup.add(sprite);
+
       // Data storage
-      pits[p.id] = { 
-        pos: new THREE.Vector3(p.x, 0, p.z), 
-        stones: [] 
+      pits[p.id] = {
+        pos: new THREE.Vector3(p.x, 0, p.z),
+        stones: [],
+        badge: badge,
+        counterSprite: sprite
       };
-      
+
       // Initial Stones
       if(p.id !== 6 && p.id !== 13) {
         spawnStones(p.id, 4);
@@ -459,6 +562,20 @@ const App = (() => {
     mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
   }
 
+  // --- Update Counter Badges ---
+  function updateCounterBadge(pitIndex) {
+    if(pits[pitIndex] && pits[pitIndex].counterSprite) {
+      pits[pitIndex].counterSprite.material.map = createNumberTexture(STATE.board[pitIndex]);
+      pits[pitIndex].counterSprite.material.needsUpdate = true;
+    }
+  }
+
+  function updateAllCounters() {
+    for(let i = 0; i < 14; i++) {
+      updateCounterBadge(i);
+    }
+  }
+
   // --- Animation ---
   function moveStonesAnimated(fromPit, count) {
     return new Promise(async (resolve) => {
@@ -467,7 +584,8 @@ const App = (() => {
       // 1. Pick up stones
       const movingStones = pits[fromPit].stones.splice(0, count); // Take all
       STATE.board[fromPit] = 0; // Logic update
-      
+      updateCounterBadge(fromPit); // Update counter
+
       // Visual pickup
       movingStones.forEach(s => {
         gsap.to(s.position, { y: 2, duration: 0.3, ease: "back.out(1.7)" });
@@ -490,7 +608,8 @@ const App = (() => {
         
         // Logic Update
         STATE.board[currentPit]++;
-        
+        updateCounterBadge(currentPit); // Update counter
+
         // Visual Drop
         const targetPitObj = pits[currentPit];
         const isStore = (currentPit === 6 || currentPit === 13);
@@ -573,7 +692,7 @@ const App = (() => {
     // Rule: Land in own store -> Repeat turn
     if(lastPit === myStore) {
       repeatTurn = true;
-      AudioEngine.playChime();
+      AudioEngine.playExtraTurn(); // Special sound for extra turn!
     }
     
     // Rule: Capture (Land in empty pit on own side)
@@ -588,6 +707,7 @@ const App = (() => {
 
     if(!repeatTurn && !STATE.gameOver) {
       STATE.turn = 1 - STATE.turn;
+      AudioEngine.playTurnEnd(); // Play sound when turn switches
       updateHUD();
       if(STATE.turn === 1 && STATE.mode === 'cpu') {
         setTimeout(cpuTurn, 1000);
@@ -608,16 +728,21 @@ const App = (() => {
     // Move my stone and opp stones to store
     const countMy = STATE.board[myPit];
     const countOpp = STATE.board[oppPit];
-    
+
     STATE.board[myPit] = 0;
     STATE.board[oppPit] = 0;
     STATE.board[store] += (countMy + countOpp);
-    
+
+    // Update counters
+    updateCounterBadge(myPit);
+    updateCounterBadge(oppPit);
+    updateCounterBadge(store);
+
     // Visuals
     const stonesToMove = [...pits[myPit].stones, ...pits[oppPit].stones];
     pits[myPit].stones = [];
     pits[oppPit].stones = [];
-    
+
     stonesToMove.forEach(s => {
       pits[store].stones.push(s);
       gsap.to(s.position, {
@@ -628,21 +753,24 @@ const App = (() => {
         ease: "back.inOut(1.2)"
       });
     });
-    
+
     await wait(800);
   }
 
   function checkWinCondition() {
     const p1Empty = STATE.board.slice(0,6).every(n => n===0);
     const p2Empty = STATE.board.slice(7,13).every(n => n===0);
-    
+
     if(p1Empty || p2Empty) {
       STATE.gameOver = true;
       // Collect remainders
       [0,1,2,3,4,5].forEach(i => { STATE.board[6] += STATE.board[i]; STATE.board[i]=0; });
       [7,8,9,10,11,12].forEach(i => { STATE.board[13] += STATE.board[i]; STATE.board[i]=0; });
-      
-      // Visual Refresh needed to show cleared board? 
+
+      // Update all counters
+      updateAllCounters();
+
+      // Visual Refresh needed to show cleared board?
       // For simplicity, just update HUD text
       const winner = STATE.board[6] > STATE.board[13] ? "Player 1 Wins!" : (STATE.board[13] > STATE.board[6] ? "Player 2 Wins!" : "It's a Tie!");
       document.getElementById('status').innerHTML = `<span style="color:#d9534f">${winner}</span>`;
@@ -720,16 +848,20 @@ const App = (() => {
     stones.forEach(s => boardGroup.remove(s));
     stones = [];
     pits.forEach(p => p.stones = []);
-    
+
     // Reset State
     STATE.board = Array(14).fill(4);
     STATE.board[6]=0; STATE.board[13]=0;
     STATE.turn = 0;
     STATE.gameOver = false;
     STATE.animating = false;
-    
+
     // Respawn visuals
     [0,1,2,3,4,5,7,8,9,10,11,12].forEach(i => spawnStones(i, 4));
+
+    // Update all counters
+    updateAllCounters();
+
     updateHUD();
   }
 
