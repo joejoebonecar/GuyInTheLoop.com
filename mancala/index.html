@@ -545,21 +545,47 @@ const App = (() => {
   }
 
   function placeStoneInPit(mesh, center, index, isStore) {
-    // Random offset within circle
-    const radius = isStore ? 0.8 : 0.45;
-    const r = Math.sqrt(Math.random()) * radius;
-    const theta = Math.random() * Math.PI * 2;
-    
-    // Stack height based on index roughly
-    const y = -0.5 + (index * 0.12) + (Math.random() * 0.05);
-    
+    // Improved realistic stacking with pyramid-like distribution
+    const baseRadius = isStore ? 0.8 : 0.45;
+
+    // Calculate layer (0 = bottom, increases as we stack)
+    const stonesPerLayer = isStore ? 7 : 4;
+    const layer = Math.floor(index / stonesPerLayer);
+    const posInLayer = index % stonesPerLayer;
+
+    // Reduce radius as we go up (pyramid effect)
+    const layerRadiusFactor = Math.max(0.3, 1 - (layer * 0.15));
+    const radius = baseRadius * layerRadiusFactor;
+
+    // Position within the layer (more organized at bottom, more random at top)
+    const angleStep = (Math.PI * 2) / Math.max(stonesPerLayer, 1);
+    const baseAngle = posInLayer * angleStep;
+    const angleJitter = (Math.random() - 0.5) * angleStep * 0.6;
+    const theta = baseAngle + angleJitter;
+
+    // Radial position with some randomness
+    const radialJitter = (Math.random() - 0.5) * 0.15;
+    const r = (radius * 0.5 + Math.random() * radius * 0.5) + radialJitter;
+
+    // Height calculation - start higher to be visible, with realistic stacking
+    const baseHeight = 0.1; // Above the pit rim
+    const stoneHeight = 0.25; // Approximate height of each stone
+    const layerHeight = layer * stoneHeight;
+    const verticalJitter = (Math.random() - 0.5) * 0.08;
+    const y = baseHeight + layerHeight + verticalJitter;
+
     mesh.position.set(
       center.x + r * Math.cos(theta),
       y,
       center.z + r * Math.sin(theta)
     );
-    
-    mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+
+    // Varied rotation for natural look
+    mesh.rotation.set(
+      Math.random() * Math.PI * 2,
+      Math.random() * Math.PI * 2,
+      Math.random() * Math.PI * 2
+    );
   }
 
   // --- Update Counter Badges ---
@@ -613,14 +639,35 @@ const App = (() => {
         // Visual Drop
         const targetPitObj = pits[currentPit];
         const isStore = (currentPit === 6 || currentPit === 13);
-        
-        // Calculate organic landing spot
-        const radius = isStore ? 0.8 : 0.45;
-        const r = Math.sqrt(Math.random()) * radius;
-        const theta = Math.random() * Math.PI * 2;
+
+        // Calculate organic landing spot with improved stacking
+        const stoneIndex = targetPitObj.stones.length;
+        const baseRadius = isStore ? 0.8 : 0.45;
+        const stonesPerLayer = isStore ? 7 : 4;
+        const layer = Math.floor(stoneIndex / stonesPerLayer);
+        const posInLayer = stoneIndex % stonesPerLayer;
+
+        // Pyramid effect
+        const layerRadiusFactor = Math.max(0.3, 1 - (layer * 0.15));
+        const radius = baseRadius * layerRadiusFactor;
+
+        // Position within layer
+        const angleStep = (Math.PI * 2) / Math.max(stonesPerLayer, 1);
+        const baseAngle = posInLayer * angleStep;
+        const angleJitter = (Math.random() - 0.5) * angleStep * 0.6;
+        const theta = baseAngle + angleJitter;
+        const radialJitter = (Math.random() - 0.5) * 0.15;
+        const r = (radius * 0.5 + Math.random() * radius * 0.5) + radialJitter;
+
+        // Height with realistic stacking
+        const baseHeight = 0.1;
+        const stoneHeight = 0.25;
+        const layerHeight = layer * stoneHeight;
+        const verticalJitter = (Math.random() - 0.5) * 0.08;
+
         const targetPos = new THREE.Vector3(
           targetPitObj.pos.x + r * Math.cos(theta),
-          -0.4 + (targetPitObj.stones.length * 0.12), // Stack on existing
+          baseHeight + layerHeight + verticalJitter,
           targetPitObj.pos.z + r * Math.sin(theta)
         );
 
@@ -743,12 +790,26 @@ const App = (() => {
     pits[myPit].stones = [];
     pits[oppPit].stones = [];
 
-    stonesToMove.forEach(s => {
+    stonesToMove.forEach((s, idx) => {
+      const stoneIndex = pits[store].stones.length;
       pits[store].stones.push(s);
+
+      // Calculate proper stacking position in store
+      const baseRadius = 0.8;
+      const stonesPerLayer = 7;
+      const layer = Math.floor(stoneIndex / stonesPerLayer);
+      const posInLayer = stoneIndex % stonesPerLayer;
+      const layerRadiusFactor = Math.max(0.3, 1 - (layer * 0.15));
+      const radius = baseRadius * layerRadiusFactor;
+      const angleStep = (Math.PI * 2) / Math.max(stonesPerLayer, 1);
+      const theta = posInLayer * angleStep + (Math.random() - 0.5) * angleStep * 0.6;
+      const r = (radius * 0.5 + Math.random() * radius * 0.5) + (Math.random() - 0.5) * 0.15;
+      const targetY = 0.1 + (layer * 0.25) + (Math.random() - 0.5) * 0.08;
+
       gsap.to(s.position, {
-        x: pits[store].pos.x,
-        z: pits[store].pos.z,
-        y: Math.random(),
+        x: pits[store].pos.x + r * Math.cos(theta),
+        z: pits[store].pos.z + r * Math.sin(theta),
+        y: targetY,
         duration: 0.8,
         ease: "back.inOut(1.2)"
       });
