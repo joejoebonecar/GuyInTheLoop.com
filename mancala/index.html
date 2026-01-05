@@ -3,19 +3,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>Zen Mancala</title>
+  <title>mancala - /gitl/</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   
   <style>
     :root {
-      --bg: #e6e2d3;
-      --ui-bg: rgba(255, 252, 245, 0.9);
-      --text: #4a4036;
-      --accent: #8c7b6c;
+      --bg: #eef2ff;
+      --ui-bg: rgba(240, 224, 214, 0.95);
+      --text: #000;
+      --border: #b7c5d9;
     }
-    body { margin: 0; overflow: hidden; background: var(--bg); font-family: 'Georgia', serif; color: var(--text); }
-    
+    body { margin: 0; overflow: hidden; background: var(--bg); font-family: monospace; color: var(--text); }
+
     /* UI Overlay */
     #ui {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
@@ -24,45 +24,40 @@
     .panel {
       pointer-events: auto;
       background: var(--ui-bg);
-      backdrop-filter: blur(10px);
-      padding: 10px 20px;
-      border-radius: 10px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-      border: 1px solid rgba(0,0,0,0.05);
+      padding: 8px 16px;
+      border: 1px solid var(--border);
       text-align: center;
-      transition: opacity 0.3s;
       max-width: 500px;
       align-self: center;
     }
-    h1 { margin: 0 0 4px 0; font-size: 1.2rem; letter-spacing: 0.05em; color: #2c241b; }
-    p { margin: 0; font-size: 0.85rem; color: #6b5d52; }
-    
+    h1 { margin: 0 0 8px 0; font-size: 14px; font-weight: bold; color: #000; }
+    p { margin: 0; font-size: 12px; color: #000; }
+
     /* HUD */
-    .hud { display: flex; gap: 15px; justify-content: center; font-weight: bold; font-size: 1rem; }
-    .turn-indicator { color: var(--accent); font-style: italic; font-size: 0.85rem; margin-top: 4px; }
+    .hud { display: flex; gap: 15px; justify-content: center; font-size: 13px; }
+    .turn-indicator { font-size: 12px; margin-top: 4px; }
 
     /* Controls */
-    .controls { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+    .controls { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
     button {
-      background: #f0ebe0; border: 1px solid #dcd6cb; padding: 6px 12px; border-radius: 6px;
-      color: #5c4d3c; cursor: pointer; font-family: inherit; font-weight: 600; font-size: 0.9rem;
-      transition: all 0.2s ease;
+      background: #f0e0d6; border: 1px solid #b7c5d9; padding: 6px 12px;
+      color: #000; cursor: pointer; font-family: monospace; font-size: 12px;
     }
-    button:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-    button:active { transform: translateY(0); }
-    
+    button:hover { background: #d6daf0; }
+    button:active { background: #b7c5d9; }
+
     /* Start Screen / Modal */
     #modal {
-      position: fixed; inset: 0; background: rgba(230, 226, 211, 0.85); z-index: 10;
-      display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);
+      position: fixed; inset: 0; background: rgba(238, 242, 255, 0.9); z-index: 10;
+      display: flex; align-items: center; justify-content: center;
     }
     .card {
-      background: #fffcf5; padding: 40px; border-radius: 20px; max-width: 500px; width: 90%;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.15); text-align: center; border: 1px solid #e0d8c8;
+      background: #f0e0d6; padding: 24px; max-width: 500px; width: 90%;
+      border: 1px solid #b7c5d9; text-align: center; font-family: monospace;
     }
-    .card h2 { margin-top: 0; color: #8b5e3c; }
-    .mode-select { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
-    .card hr { border: 0; border-top: 1px solid #eee; margin: 20px 0; }
+    .card h2 { margin-top: 0; font-size: 16px; color: #000; }
+    .mode-select { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0; }
+    .card hr { border: 0; border-top: 1px solid #b7c5d9; margin: 16px 0; }
     
     canvas { display: block; outline: none; }
 
@@ -95,36 +90,39 @@
 
   <div id="ui">
     <div class="panel">
-      <h1>ZEN MANCALA</h1>
+      <h1>MANCALA.EXE</h1>
       <div class="hud">
-        <span id="p2-score">CPU: 0</span>
-        <span id="p1-score">You: 0</span>
+        <span id="p2-score">P2: 0</span>
+        <span id="p1-score">P1: 0</span>
       </div>
-      <div id="status" class="turn-indicator">Initialize...</div>
+      <div id="status" class="turn-indicator">loading...</div>
     </div>
 
     <div class="panel">
       <div class="controls">
-        <button id="btn-undo">Undo</button>
-        <button id="btn-restart">Restart</button>
-        <button id="btn-sound">Sound: ON</button>
+        <button id="btn-undo">undo</button>
+        <button id="btn-restart">restart</button>
+        <button id="btn-sound">sound: on</button>
+      </div>
+      <div style="margin-top: 8px; font-size: 11px;">
+        <a href="../index.html" style="color: #34345c; text-decoration: none;">← back to /gitl/</a>
       </div>
     </div>
   </div>
 
   <div id="modal">
     <div class="card">
-      <h2>Welcome</h2>
-      <p>A meditative game of strategy.</p>
+      <h2>mancala</h2>
+      <p>ancient stone-counting game. 3d rendering.</p>
       <hr>
-      <p><strong>Select Game Mode:</strong></p>
+      <p><strong>select mode:</strong></p>
       <div class="mode-select">
-        <button onclick="startGame('pvp')">2 Players</button>
-        <button onclick="startGame('cpu')">Vs CPU (Normal)</button>
+        <button onclick="startGame('pvp')">2 players</button>
+        <button onclick="startGame('cpu')">vs computer</button>
       </div>
-      <p style="font-size:0.8rem; margin-top:15px; color:#999">
-        Pick a pit on your side (Bottom). Stones move counter-clockwise.<br>
-        Land in your store for a free turn.
+      <p style="font-size: 11px; margin-top: 12px; color: #666;">
+        rules: click a pit on your side. stones distribute counter-clockwise.<br>
+        landing in your store gives you another turn.
       </p>
     </div>
   </div>
@@ -833,7 +831,7 @@ const App = (() => {
 
       // Visual Refresh needed to show cleared board?
       // For simplicity, just update HUD text
-      const winner = STATE.board[6] > STATE.board[13] ? "Player 1 Wins!" : (STATE.board[13] > STATE.board[6] ? "Player 2 Wins!" : "It's a Tie!");
+      const winner = STATE.board[6] > STATE.board[13] ? "player 1 wins" : (STATE.board[13] > STATE.board[6] ? "player 2 wins" : "tie game");
       document.getElementById('status').innerHTML = `<span style="color:#d9534f">${winner}</span>`;
       AudioEngine.playChime();
     }
@@ -885,10 +883,10 @@ const App = (() => {
   }
 
   function updateHUD() {
-    document.getElementById('p1-score').innerText = `You: ${STATE.board[6]}`;
-    document.getElementById('p2-score').innerText = `Opponent: ${STATE.board[13]}`;
+    document.getElementById('p1-score').innerText = `P1: ${STATE.board[6]}`;
+    document.getElementById('p2-score').innerText = `P2: ${STATE.board[13]}`;
     if(!STATE.gameOver) {
-      const txt = STATE.turn === 0 ? "Your Turn" : (STATE.mode === 'cpu' ? "CPU Thinking..." : "Player 2 Turn");
+      const txt = STATE.turn === 0 ? "your turn" : (STATE.mode === 'cpu' ? "computer thinking..." : "player 2 turn");
       document.getElementById('status').innerText = txt;
     }
   }
@@ -941,7 +939,7 @@ document.getElementById('btn-restart').onclick = () => {
 };
 document.getElementById('btn-sound').onclick = (e) => {
     App.toggleSound();
-    e.target.innerText = e.target.innerText.includes("ON") ? "Sound: OFF" : "Sound: ON";
+    e.target.innerText = e.target.innerText.includes("on") ? "sound: off" : "sound: on";
 };
 
 // Initialize only the landing visual
