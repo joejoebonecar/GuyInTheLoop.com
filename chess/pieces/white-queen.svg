@@ -1,6 +1,6 @@
 <svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="queenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="white-queen-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
       <stop offset="50%" style="stop-color:#f0f0f0;stop-opacity:1" />
       <stop offset="100%" style="stop-color:#e0e0e0;stop-opacity:1" />
@@ -8,19 +8,19 @@
   </defs>
 
   <!-- Base -->
-  <ellipse cx="30" cy="45" rx="12" ry="8" fill="url(#queenGradient)" stroke="#cccccc" stroke-width="1"/>
+  <ellipse cx="30" cy="45" rx="12" ry="8" fill="url(#white-queen-gradient)" stroke="#cccccc" stroke-width="1"/>
 
   <!-- Body -->
-  <rect x="24" y="25" width="12" height="20" rx="2" fill="url(#queenGradient)" stroke="#cccccc" stroke-width="1"/>
+  <rect x="24" y="25" width="12" height="20" rx="2" fill="url(#white-queen-gradient)" stroke="#cccccc" stroke-width="1"/>
 
   <!-- Crown base -->
-  <rect x="20" y="18" width="20" height="8" rx="2" fill="url(#queenGradient)" stroke="#cccccc" stroke-width="1"/>
+  <rect x="20" y="18" width="20" height="8" rx="2" fill="url(#white-queen-gradient)" stroke="#cccccc" stroke-width="1"/>
 
   <!-- Crown points -->
-  <polygon points="20,18 23,10 26,18" fill="url(#queenGradient)" stroke="#cccccc" stroke-width="1"/>
-  <polygon points="26,18 29,8 32,18" fill="url(#queenGradient)" stroke="#cccccc" stroke-width="1"/>
-  <polygon points="32,18 35,10 38,18" fill="url(#queenGradient)" stroke="#cccccc" stroke-width="1"/>
-  <polygon points="38,18 41,8 44,18" fill="url(#queenGradient)" stroke="#cccccc" stroke-width="1"/>
+  <polygon points="20,18 23,10 26,18" fill="url(#white-queen-gradient)" stroke="#cccccc" stroke-width="1"/>
+  <polygon points="26,18 29,8 32,18" fill="url(#white-queen-gradient)" stroke="#cccccc" stroke-width="1"/>
+  <polygon points="32,18 35,10 38,18" fill="url(#white-queen-gradient)" stroke="#cccccc" stroke-width="1"/>
+  <polygon points="38,18 41,8 44,18" fill="url(#white-queen-gradient)" stroke="#cccccc" stroke-width="1"/>
 
   <!-- Queen symbol -->
   <circle cx="30" cy="22" r="3" fill="#ff1744"/>
