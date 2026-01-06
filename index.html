@@ -1,312 +1,744 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>/gitl/ - guy in the loop</title>
-<meta name="description" content="llm experiments and other time wasters">
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Guy In The Loop</title>
+  <meta name="description" content="Low noise. High signal. Quiet refusal." />
+  <style>
+    :root{
+      --bg:#020402;
+      --fg:#b7ffb7;
+      --dim:rgba(183,255,183,.72);
+      --line:rgba(183,255,183,.18);
+      --card:rgba(0,0,0,.48);
+      --glow:rgba(90,255,110,.22);
 
-body {
-  background: #eef2ff;
-  font-family: monospace;
-  font-size: 13px;
-  line-height: 1.4;
-  color: #000;
-  padding: 8px;
+      /* 80s palette injection */
+      --cyan:#00ffff;
+      --magenta:#ff00ff;
+      --hotpink:#ff1493;
+      --amber:#ffbf00;
+      --neon-blue:#4d4dff;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+
+    body{
+      margin:0;
+      background:
+        /* 80s grid overlay */
+        repeating-linear-gradient(0deg, transparent, transparent 49px, rgba(0,255,255,.04) 50px),
+        repeating-linear-gradient(90deg, transparent, transparent 49px, rgba(255,0,255,.04) 50px),
+        radial-gradient(900px 540px at 50% 18%, rgba(90,255,110,.10), transparent 60%),
+        radial-gradient(900px 640px at 50% 120%, rgba(90,255,110,.08), transparent 62%),
+        linear-gradient(180deg, rgba(0,0,0,.0), rgba(0,0,0,.35)),
+        var(--bg);
+      color:var(--fg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      letter-spacing: 0.01em;
+    }
+
+    /* scanlines */
+    body:before{
+      content:"";
+      position:fixed; inset:0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.00),
+        rgba(0,0,0,0.00) 2px,
+        rgba(0,0,0,0.18) 3px
+      );
+      pointer-events:none;
+      mix-blend-mode:multiply;
+      opacity:.33;
+    }
+
+    /* CRT flicker (mild, not glitchy) */
+    body:after{
+      content:"";
+      position:fixed; inset:0;
+      background:
+        radial-gradient(circle at 50% 35%, rgba(0,255,255,.03), transparent 55%),
+        radial-gradient(circle at 50% 35%, rgba(90,255,110,.08), transparent 55%);
+      pointer-events:none;
+      opacity:.08;
+      animation:flicker 6.5s infinite;
+    }
+    @keyframes flicker{
+      0%,100%{opacity:.08; filter:brightness(1)}
+      48%{opacity:.06; filter:brightness(0.985)}
+      50%{opacity:.10; filter:brightness(1.02)}
+      52%{opacity:.07; filter:brightness(0.99)}
+      70%{opacity:.09; filter:brightness(1.01)}
+    }
+
+    .stage{
+      min-height:100%;
+      display:grid;
+      place-items:center;
+      padding: 56px 18px;
+      position:relative;
+    }
+
+    /* floating 80s geometric shapes */
+    .retro-shape{
+      position:absolute;
+      border:2px solid;
+      opacity:.15;
+      pointer-events:none;
+      animation: float 8s ease-in-out infinite;
+    }
+    .shape-1{
+      top:12%; left:8%;
+      width:60px; height:60px;
+      border-color: var(--cyan);
+      transform: rotate(45deg);
+    }
+    .shape-2{
+      top:68%; right:12%;
+      width:80px; height:80px;
+      border-color: var(--magenta);
+      border-radius:50%;
+      animation-delay:-2s;
+    }
+    .shape-3{
+      bottom:15%; left:15%;
+      width:0; height:0;
+      border-left:40px solid transparent;
+      border-right:40px solid transparent;
+      border-bottom:70px solid var(--hotpink);
+      opacity:.12;
+      animation-delay:-4s;
+    }
+    @keyframes float{
+      0%,100%{transform:translateY(0px) rotate(0deg)}
+      50%{transform:translateY(-20px) rotate(10deg)}
+    }
+
+    .grid{
+      width:min(980px, 100%);
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+      align-items:center;
+      justify-items:center;
+    }
+
+    .terminal{
+      width: min(860px, 100%);
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow:
+        0 0 0 1px rgba(90,255,110,.05) inset,
+        0 0 40px rgba(0,255,255,.08),
+        0 18px 60px rgba(0,0,0,.65);
+      overflow:hidden;
+      position:relative;
+    }
+
+    /* "UNDER CONSTRUCTION" stripe */
+    .terminal:before{
+      content:"⚠ SYSTEM UPDATE IN PROGRESS ⚠";
+      position:absolute;
+      top:0; left:0; right:0;
+      background: repeating-linear-gradient(
+        45deg,
+        rgba(255,191,0,.15),
+        rgba(255,191,0,.15) 10px,
+        rgba(0,0,0,.25) 10px,
+        rgba(0,0,0,.25) 20px
+      );
+      text-align:center;
+      font-size:10px;
+      color:var(--amber);
+      padding:4px 0;
+      border-bottom:1px solid rgba(255,191,0,.3);
+      letter-spacing:.05em;
+      z-index:10;
+    }
+
+    .bar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 14px;
+      padding: 14px 18px;
+      padding-top:28px; /* space for construction banner */
+      border-bottom: 1px dashed var(--line);
+      background: rgba(0,0,0,.35);
+    }
+
+    .dots{display:flex; gap:8px; align-items:center}
+    .dot{
+      width:10px;height:10px;border-radius:999px;
+      border:1px solid var(--line);
+      box-shadow: 0 0 18px var(--glow);
+      opacity:.9;
+    }
+    .title{
+      font-size: 12px;
+      color: var(--dim);
+      opacity:.95;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .boot{
+      padding: 16px 18px 6px;
+      color: var(--dim);
+      font-size: 13px;
+      line-height: 1.55;
+      white-space: pre-line;
+      min-height: 140px;
+      opacity:0;
+      animation: bootIn .35s ease forwards;
+    }
+    @keyframes bootIn{to{opacity:1}}
+    .boot .line{
+      opacity:0;
+      transform: translateY(2px);
+      animation: lineIn .22s ease forwards;
+    }
+    @keyframes lineIn{to{opacity:1; transform:none}}
+    .boot .line:nth-child(1){animation-delay:.10s}
+    .boot .line:nth-child(2){animation-delay:.22s}
+    .boot .line:nth-child(3){animation-delay:.34s}
+    .boot .line:nth-child(4){animation-delay:.46s}
+    .boot .line:nth-child(5){animation-delay:.58s}
+    .boot .line:nth-child(6){animation-delay:.70s}
+    .boot .line:nth-child(7){animation-delay:.82s}
+    .boot .retro-inject{
+      color: var(--cyan);
+      text-shadow: 0 0 8px rgba(0,255,255,.55);
+    }
+
+    .main{
+      padding: 18px;
+      border-top: 1px dashed var(--line);
+      opacity:0;
+      transform: translateY(6px);
+      animation: mainIn .45s ease forwards;
+      animation-delay: 1.05s;
+    }
+    @keyframes mainIn{to{opacity:1; transform:none}}
+
+    h1{
+      margin: 0 0 10px;
+      text-align:center;
+      font-size: 34px;
+      letter-spacing: -0.01em;
+      text-shadow: 0 0 18px var(--glow);
+      position:relative;
+    }
+
+    /* Badge stays, but no glitch animation */
+    h1:after{
+      content:"◢TURBO◣";
+      position:absolute;
+      top:-8px; right:calc(50% - 180px);
+      font-size:11px;
+      color:var(--hotpink);
+      border:1px solid rgba(255,20,147,.75);
+      padding:2px 6px;
+      border-radius:3px;
+      background:rgba(255,20,147,.08);
+      text-shadow: 0 0 12px rgba(255,20,147,.35);
+      opacity:.95;
+    }
+/* Fix TURBO badge clipping on the splash title */
+#mancalaSplash .mancalaTitle:after{
+  top: 6px;          /* was -8px via h1:after */
+  right: 10px;       /* keep it inside the clipped area */
 }
+    .sub{
+      margin: 0 0 18px;
+      text-align:center;
+      font-size: 13px;
+      color: var(--dim);
+    }
 
-.container { max-width: 900px; margin: 0 auto; }
+    .block{
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      background: rgba(0,0,0,.30);
+      box-shadow: 0 0 0 1px rgba(90,255,110,.04) inset;
+      position:relative;
+    }
+    .block:before{
+      content:"";
+      position:absolute;
+      top:-1px; left:20%;
+      width:60%;
+      height:2px;
+      background: linear-gradient(90deg,
+        transparent,
+        rgba(0,255,255,.55) 30%,
+        rgba(255,0,255,.55) 70%,
+        transparent);
+      opacity:.35;
+    }
 
-/* Header - imageboard style */
-.header {
-  background: #d6daf0;
-  border: 1px solid #b7c5d9;
-  padding: 4px 8px;
-  margin-bottom: 12px;
-}
+    p{
+      margin: 0 0 12px;
+      line-height: 1.65;
+      font-size: 15px;
+      color: var(--fg);
+      text-align:center;
+    }
+    p:last-child{margin-bottom:0}
+    .muted{color:var(--dim)}
+    .hype{
+      color:rgba(0,255,255,.9);
+      text-shadow: 0 0 6px rgba(0,255,255,.45);
+      font-weight:600;
+    }
 
-.board-title {
-  color: #af0a0f;
-  font-weight: bold;
-  font-size: 24px;
-  margin: 0;
-}
+    .tags{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:10px;
+      margin-top:14px;
+    }
+    .tag{
+      font-size: 12px;
+      color: var(--dim);
+      border: 1px solid var(--line);
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.22);
+      transition: all .2s;
+    }
+    .tag.retro{
+      color: rgba(0,255,255,.9);
+      border-color: rgba(0,255,255,.65);
+      background: rgba(0,255,255,.08);
+      text-shadow: 0 0 6px rgba(0,255,255,.35);
+    }
+    .tag.retro:hover{
+      background: rgba(0,255,255,.15);
+      box-shadow: 0 0 12px rgba(0,255,255,.22);
+    }
 
-.board-subtitle {
-  color: #89a;
-  font-size: 11px;
-}
+    .status{
+      margin-top: 14px;
+      text-align:center;
+      font-size: 13px;
+      color: var(--dim);
+      white-space: pre-line;
+      line-height: 1.55;
+    }
 
-/* Post container */
-.post {
-  background: #f0e0d6;
-  border: 1px solid #d9bfb7;
-  padding: 8px;
-  margin-bottom: 12px;
-}
+    .update-notice{
+      margin-top:18px;
+      text-align:center;
+      font-size:11px;
+      color:rgba(255,191,0,.85);
+      padding:8px 12px;
+      border:1px dashed rgba(255,191,0,.3);
+      border-radius:8px;
+      background:rgba(255,191,0,.05);
+      font-family: "Courier New", monospace;
+      letter-spacing:.02em;
+    }
+    .update-notice strong{
+      color:rgba(255,20,147,.92);
+      text-shadow: 0 0 8px rgba(255,20,147,.35);
+    }
 
-.post-header {
-  color: #117743;
-  font-weight: bold;
-  margin-bottom: 8px;
-  font-size: 11px;
-}
+    .cursor{
+      display:inline-block;
+      width: 9px;
+      height: 16px;
+      background: rgba(90,255,110,.75);
+      margin-left: 6px;
+      vertical-align: -2px;
+      box-shadow: 0 0 18px var(--glow);
+      animation: blink 1.05s steps(1,end) infinite;
+    }
+    @keyframes blink{ 50%{opacity:0} }
 
-.post-header .name { color: #117743; }
-.post-header .date { color: #000; }
-.post-header .no {
-  text-decoration: none;
-  color: #000;
-}
+    @media (max-width:520px){
+      h1{font-size:28px}
+      h1:after{right:10px; top:-6px}
+      p{font-size:14px}
+    }
 
-.post-body {
-  color: #000;
-  margin: 8px 0;
-}
+    /* ===========================
+       BIG 80s MANCALA SPLASH (10s)
+       =========================== */
+    #mancalaSplash{
+      position:fixed;
+      inset:0;
+      z-index:9999;
+      display:grid;
+      place-items:center;
+      padding: 18px;
+      background:
+        radial-gradient(900px 540px at 50% 20%, rgba(0,255,255,.16), transparent 60%),
+        radial-gradient(900px 640px at 50% 120%, rgba(255,0,255,.10), transparent 62%),
+        linear-gradient(180deg, rgba(0,0,0,.65), rgba(0,0,0,.86)),
+        var(--bg);
+      transition: opacity 520ms ease;
+    }
+    #mancalaSplash.fade-out{
+      opacity:0;
+      pointer-events:none;
+    }
+    .mancalaFrame{
+      width:min(980px, calc(100vw - 32px));
+      border-radius: 18px;
+      border: 1px solid rgba(183,255,183,.22);
+      background: rgba(0,0,0,.62);
+      box-shadow:
+        0 0 0 1px rgba(90,255,110,.08) inset,
+        0 0 40px rgba(0,255,255,.10),
+        0 24px 90px rgba(0,0,0,.80);
+      overflow:hidden;
+      position:relative;
+    }
 
-/* Greentext */
-.greentext {
-  color: #789922;
-  margin: 4px 0;
-}
+    /* retro grid floor inside splash */
+    .mancalaFrame::before{
+      content:"";
+      position:absolute;
+      inset:-40% -20% -10% -20%;
+      background:
+        linear-gradient(to bottom, rgba(90,255,110,.0), rgba(90,255,110,.12)),
+        repeating-linear-gradient(to right, rgba(90,255,110,.0), rgba(90,255,110,.0) 44px, rgba(0,255,255,.10) 45px),
+        repeating-linear-gradient(to bottom, rgba(90,255,110,.0), rgba(90,255,110,.0) 44px, rgba(255,0,255,.10) 45px);
+      transform: perspective(700px) rotateX(68deg);
+      transform-origin: center bottom;
+      opacity: .34;
+      pointer-events:none;
+    }
 
-/* Quote/reply */
-.quote {
-  color: #d00;
-  text-decoration: none;
-}
+    /* scanlines inside splash */
+    .mancalaFrame::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.00),
+        rgba(0,0,0,0.00) 2px,
+        rgba(0,0,0,0.18) 3px
+      );
+      opacity: .28;
+      mix-blend-mode: multiply;
+      pointer-events:none;
+    }
 
-.quote:hover { color: #f00; }
+    .mancalaTopline{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding: 14px 18px;
+      border-bottom: 1px dashed rgba(183,255,183,.18);
+      color: var(--dim);
+      font-size: 12px;
+      background: rgba(0,0,0,.35);
+      position: relative;
+      z-index: 2;
+    }
+    .mancalaCenter{
+      position: relative;
+      z-index: 2;
+      padding: 44px 18px 32px;
+      text-align: center;
+    }
+    .mancalaKicker{
+      font-size: 12px;
+      color: rgba(183,255,183,.72);
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      opacity: .9;
+    }
 
-/* Links */
-a { color: #34345c; text-decoration: underline; }
-a:visited { color: #34345c; }
-a:hover { color: #d00; }
+    .mancalaTitle{
+      margin: 0;
+      font-size: clamp(36px, 5.2vw, 76px);
+      letter-spacing: .03em;
+      color: var(--fg);
+      text-shadow:
+        0 0 10px rgba(90,255,110,.28),
+        0 0 22px rgba(0,255,255,.18),
+        0 0 30px rgba(255,0,255,.10);
+      animation: mancalaPulse 0.95s infinite;
+      position: relative;
+      display:inline-block;
+      overflow:hidden;
+      padding: 0 .15em;
+    }
+    @keyframes mancalaPulse{
+      0%,100%{ filter: brightness(1); transform: translateZ(0); }
+      50%{ filter: brightness(1.14); transform: scale(1.01); }
+    }
 
-/* Project boxes */
-.project-box {
-  background: #d6daf0;
-  border: 1px solid #b7c5d9;
-  padding: 12px;
-  margin: 12px 0;
-}
+    /* NEW: laser sweep shine */
+    .mancalaTitle::before{
+      content:"";
+      position:absolute;
+      top:-28%;
+      bottom:-28%;
+      left:-70%;
+      width: 44%;
+      background: linear-gradient(90deg,
+        transparent,
+        rgba(0,255,255,.28),
+        rgba(255,0,255,.22),
+        transparent
+      );
+      filter: blur(.2px);
+      mix-blend-mode: screen;
+      pointer-events:none;
+      animation: mancalaSweep 1.05s linear infinite;
+      transform: skewX(-18deg);
+      opacity: .95;
+    }
+    @keyframes mancalaSweep{
+      0%   { transform: translateX(-140%) skewX(-18deg); }
+      100% { transform: translateX(420%)  skewX(-18deg); }
+    }
 
-.project-box h3 {
-  margin: 0 0 8px 0;
-  font-size: 14px;
-  color: #000;
-}
+    .mancalaSub{
+      margin-top: 12px;
+      font-size: 13px;
+      color: rgba(183,255,183,.70);
+    }
 
-.project-box .meta {
-  color: #789;
-  font-size: 11px;
-  margin-bottom: 8px;
-}
+    .mancalaBarWrap{
+      width: min(560px, 92%);
+      height: 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(183,255,183,.22);
+      background: rgba(0,0,0,.35);
+      margin: 24px auto 0;
+      overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(90,255,110,.05) inset;
+    }
+    .mancalaBar{
+      height: 100%;
+      width: 0%;
+      background: rgba(90,255,110,.78);
+      box-shadow: 0 0 18px rgba(90,255,110,.22);
+      transition: width 120ms linear;
+    }
 
-.project-box ul {
-  margin-left: 20px;
-  margin-top: 8px;
-}
+    .mancalaCountdown{
+      margin-top: 16px;
+      font-size: 12px;
+      color: rgba(183,255,183,.70);
+      opacity: .92;
+      user-select:none;
+    }
+    .mancalaHint{
+      opacity: .55;
+      padding-left: 8px;
+    }
 
-.project-box li {
-  margin: 4px 0;
-}
+    /* NEW: INSERT COIN blink */
+    .insertCoin{
+      position:absolute;
+      right: 16px;
+      bottom: 14px;
+      z-index: 3;
+      font-size: 12px;
+      color: rgba(255,191,0,.92);
+      border: 1px solid rgba(255,191,0,.35);
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.25);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      text-shadow: 0 0 12px rgba(255,191,0,.22);
+      animation: coinBlink 1.0s steps(1,end) infinite;
+      user-select:none;
+      pointer-events:none;
+    }
+    @keyframes coinBlink{
+      0%,49%{opacity:.18}
+      50%,100%{opacity:.78}
+    }
 
-/* Footer */
-.footer {
-  text-align: center;
-  color: #89a;
-  font-size: 10px;
-  margin-top: 24px;
-  padding: 12px;
-  border-top: 1px solid #b7c5d9;
-}
-
-/* Rules/Info box */
-.info-box {
-  background: #ffe;
-  border: 1px solid #d9bfb7;
-  padding: 8px;
-  margin: 12px 0;
-  font-size: 11px;
-}
-
-.info-box strong {
-  color: #d00;
-}
-
-hr {
-  border: none;
-  border-top: 1px solid #d9bfb7;
-  margin: 16px 0;
-}
-
-@media (max-width: 768px) {
-  body { font-size: 12px; padding: 4px; }
-  .board-title { font-size: 20px; }
-}
-</style>
+    @media (prefers-reduced-motion: reduce){
+      #mancalaSplash{ transition:none; }
+      .mancalaTitle{ animation:none; }
+      .mancalaTitle::before{ display:none; }
+      .insertCoin{ animation:none; opacity:.65; }
+    }
+  </style>
 </head>
+
 <body>
+  <!-- MANCALA SPLASH (10s) -->
+  <div id="mancalaSplash" aria-live="polite" aria-label="Mancala splash screen">
+    <div class="mancalaFrame">
+      <div class="mancalaTopline">
+        <span>GITL://BOOT</span>
+        <span>v80s</span>
+      </div>
 
-<div class="container">
+      <div class="mancalaCenter">
+        <div class="mancalaKicker">TRANSMISSION RECEIVED</div>
+        <h1 class="mancalaTitle">MANCALA COMING SOON!!</h1>
+        <div class="mancalaSub">green terminal hype • neon grid • zero apologies</div>
 
-  <!-- Header -->
-  <div class="header">
-    <h1 class="board-title">/gitl/ - guy in the loop</h1>
-    <div class="board-subtitle">llm experiments - automation - things that probably shouldn't work but do</div>
-  </div>
+        <div class="mancalaBarWrap" aria-hidden="true">
+          <div class="mancalaBar" id="mancalaBar"></div>
+        </div>
 
-  <!-- Main post -->
-  <div class="post">
-    <div class="post-header">
-      <span class="name">Anonymous</span>
-      <span class="date">01/05/26(Sun)14:37:22</span>
-      <a href="#" class="no">No.000001</a>
-    </div>
-    <div class="post-body">
-      <strong>README before posting:</strong><br><br>
+        <div class="mancalaCountdown">
+          entering reality in <span id="mancalaT">10</span>s
+          <span class="mancalaHint">(tap/any key to skip)</span>
+        </div>
+      </div>
 
-      This is a dumping ground for LLM experiments and other technical shitposts. No marketing speak. No "revolutionary AI solutions." Just:
-      <br><br>
-
-      <div class="greentext">&gt; building stuff with claude/gpt</div>
-      <div class="greentext">&gt; seeing what breaks</div>
-      <div class="greentext">&gt; writing it down</div>
-      <div class="greentext">&gt; repeat</div>
-
-      <br>
-      Current status: functional. Nothing here will change your life. Most of it probably won't even work on mobile.
+      <div class="insertCoin" aria-hidden="true">INSERT COIN</div>
     </div>
   </div>
 
-  <!-- Info box -->
-  <div class="info-box">
-    <strong>DISCLAIMER:</strong> Everything here is experimental. Expect bugs. No support provided. Use at own risk. If something breaks, you get to keep both pieces.
-  </div>
+  <!-- Floating 80s shapes -->
+  <div class="retro-shape shape-1"></div>
+  <div class="retro-shape shape-2"></div>
+  <div class="retro-shape shape-3"></div>
 
-  <!-- Projects section -->
-  <div class="post">
-    <div class="post-header">
-      <span class="name">Anonymous</span>
-      <span class="date">01/05/26(Sun)14:42:18</span>
-      <a href="#" class="no">No.000002</a>
-    </div>
-    <div class="post-body">
-      <strong>Current experiments:</strong>
-    </div>
-  </div>
+  <div class="stage">
+    <div class="grid">
+      <div class="terminal">
+        <div class="bar">
+          <div class="dots" aria-hidden="true">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </div>
+          <div class="title">guyintheloop.com — observatory.v2.RADICAL</div>
+        </div>
 
-  <div class="project-box">
-    <h3>→ <a href="chess/index.html">chess implementation (broken)</a></h3>
-    <div class="meta">javascript • svg assets • RageQuit.chess edition</div>
-    <div class="post-body">
-      Chess but pieces are too Chad to listen. WTF is that sound even?
-      <br><br>
-      <div class="greentext">&gt; click piece to select</div>
-      <div class="greentext">&gt; click valid square to <s>move</s> (witness my failure)</div>
-      <div class="greentext">&gt; pieces do whatever they want</div>
-      <br>
-      Current state: completely broken, maybe not even written. I don't fucking know I'll figure it out probably. Idk how two people can play chess on a single screen so I gotta make a damn autocorrect for chess now or rip one off from somewhere.
-    </div>
-  </div>
+        <div class="boot" aria-label="boot log">
+          <div class="line">[BOOT] initializing interface…</div>
+          <div class="line">[CHK ] curiosity: present</div>
+          <div class="line">[CHK ] certainty: optional</div>
+          <div class="line retro-inject">[80s ] N E O N: loading…</div>
+          <div class="line">[NET ] signal acquisition: in progress</div>
+          <div class="line">[SYS ] norms: examined (not adopted by default)</div>
+          <div class="line">[SAFE] humility lock: engaged</div>
+          <div class="line">[OK  ] continue ▸</div>
+        </div>
 
-  <div class="project-box">
-    <h3>→ <a href="mancala/index.html">mancala with 3d rendering</a></h3>
-    <div class="meta">three.js • gsap • AI opponent • actually finished</div>
-    <div class="post-body">
-      Ancient stone-counting game. Has 4 difficulty levels for AI. Renders in 3D because why not.
-      <br><br>
-      Features:
-      <ul>
-        <li>2-player local or vs computer</li>
-        <li>AI that gets progressively less stupid</li>
-        <li>Touch controls work</li>
-        <li>No tutorial (figure it out)</li>
-      </ul>
-      <br>
-      Rules: <a href="https://en.wikipedia.org/wiki/Mancala" target="_blank">wikipedia knows more than i do</a>
-    </div>
-  </div>
+        <div class="main">
+          <h1>GUY IN THE LOOP<span class="cursor" aria-hidden="true"></span></h1>
+          <div class="sub">low noise · high signal · <span class="hype">MAXIMUM OVERDRIVE</span></div>
 
-  <div class="project-box">
-    <h3>→ <a href="blackjack/index.html">blackjack</a></h3>
-    <div class="meta">vanilla js • card logic • house rules</div>
-    <div class="post-body">
-      Standard 21. Basic strategy. House always stands on 17.
-      <br><br>
-      <div class="greentext">&gt; hit until you're satisfied or bust</div>
-      <div class="greentext">&gt; dealer plays by fixed rules</div>
-      <div class="greentext">&gt; double down available on first two cards</div>
-      <br>
-      Current state: in development
-    </div>
-  </div>
+          <div class="block">
+            <p>
+              A quiet corner for people who like systems — and also like asking
+              why those systems keep turning into cages.
+            </p>
+            <p class="muted">
+              I build small experiments around LLMs and automation.
+              Not to "win" the future — just to make it <span class="hype">38% MORE RADICAL</span>.
+            </p>
+          </div>
 
-  <hr>
+          <div class="tags" aria-label="topics">
+            <span class="tag retro">llms</span>
+            <span class="tag">ai systems</span>
+            <span class="tag retro">automation</span>
+            <span class="tag">sensemaking</span>
+            <span class="tag retro">anti-bullshit engineering</span>
+          </div>
 
-  <!-- About section -->
-  <div class="post">
-    <div class="post-header">
-      <span class="name">Anonymous</span>
-      <span class="date">01/05/26(Sun)15:03:47</span>
-      <a href="#" class="no">No.000003</a>
-    </div>
-    <div class="post-body">
-      <strong>What is this?</strong><br><br>
+          <div class="project-link" style="margin-top:32px; padding:18px; border:1px solid rgba(90,255,110,.22); border-radius:8px; background:rgba(0,255,255,.05); transition:all .3s;">
+            <div style="font-size:11px; color:rgba(90,255,110,.65); letter-spacing:.1em; text-transform:uppercase; margin-bottom:8px;">🎮 New Game</div>
+            <a href="chess/index.html" style="text-decoration:none; color:var(--fg); font-weight:bold; display:block; margin-bottom:8px;">CHESS™ BUT ITALIAN BRAINROT EDITION</a>
+            <p style="margin:0; font-size:13px; color:rgba(183,255,183,.75); line-height:1.5;">
+              Experience chess like never before - with glitchy neon aesthetics, dramatic Italian sound effects, and completely unhinged animations. STATO DEL GIOCO updates included.
+            </p>
+            <div style="margin-top:12px; font-size:11px; color:rgba(183,255,183,.55);">
+              • Glitchy CRT aesthetic • Italian brainrot sounds • Dramatic text effects • Touch & mouse
+            </div>
+          </div>
 
-      Personal archive for LLM automation experiments. Testing what works when you give AI agents actual tasks instead of writing poetry.
-      <br><br>
+          <div class="project-link" style="margin-top:16px; padding:18px; border:1px solid rgba(90,255,110,.22); border-radius:8px; background:rgba(255,0,255,.05); transition:all .3s;">
+            <div style="font-size:11px; color:rgba(255,0,255,.75); letter-spacing:.1em; text-transform:uppercase; margin-bottom:8px;">🎮 /b/ Edition</div>
+            <a href="chess3d/index.html" style="text-decoration:none; color:var(--fg); font-weight:bold; display:block; margin-bottom:8px;">/chess3d/ - 3D CHESS ANONYMOUS EDITION</a>
+            <p style="margin:0; font-size:13px; color:rgba(183,255,183,.75); line-height:1.5;">
+              Imageboard-themed 3D chess. Pieces explode into particles. Three color schemes (Yotsuba/Futaba). AI that's either competent or eating crayons. Chaos mode exists but you weren't warned properly. No refunds.
+            </p>
+            <div style="margin-top:12px; font-size:11px; color:rgba(183,255,183,.55);">
+              • Full chess rules + en passant • Random promotions • Glitchy Staunton pieces • Procedural SFX
+            </div>
+          </div>
 
-      Topics of interest:
-      <br>
-      <div class="greentext">&gt; agent-based systems that don't hallucinate (mostly)</div>
-      <div class="greentext">&gt; automation patterns that scale</div>
-      <div class="greentext">&gt; keeping humans in the loop without slowing everything down</div>
-      <div class="greentext">&gt; practical applications of models that everyone says are "too expensive"</div>
+          <div class="project-link" style="margin-top:16px; padding:18px; border:1px solid rgba(90,255,110,.22); border-radius:8px; background:rgba(0,255,255,.05); transition:all .3s;">
+            <div style="font-size:11px; color:rgba(90,255,110,.65); letter-spacing:.1em; text-transform:uppercase; margin-bottom:8px;">🎮 Classic Game</div>
+            <a href="mancala/index.html" style="text-decoration:none; color:var(--fg); font-weight:bold; display:block; margin-bottom:8px;">Traditional Mancala</a>
+            <p style="margin:0; font-size:13px; color:rgba(183,255,183,.75); line-height:1.5;">
+              Play the ancient stone-counting game. Challenge a 4-level AI opponent or compete with a friend. Features completely unconvincing Japanese aesthetic, some sort of animations, and synthesized audio.
+            </p>
+            <div style="margin-top:12px; font-size:11px; color:rgba(183,255,183,.55);">
+              • 2-player or AI • 4 difficulty levels • Touch & mouse • Responsive design
+            </div>
+          </div>
 
-      <br>
-      No courses for sale. No newsletter. No "exclusive community." Just experiments and write-ups when they're done.
-      <br><br>
+          <div class="status" aria-label="status">
+status: quiet build
+signal: intermittent
+output: soon (when it behaves)
+          </div>
 
-      Everything built here uses:
-      <ul style="margin-left: 20px; margin-top: 8px;">
-        <li>claude (sonnet/opus depending on budget)</li>
-        <li>vanilla js (no frameworks unless necessary)</li>
-        <li>whatever works</li>
-      </ul>
-    </div>
-  </div>
-
-  <!-- Status -->
-  <div class="post">
-    <div class="post-header">
-      <span class="name">Anonymous</span>
-      <span class="date">01/05/26(Sun)15:12:33</span>
-      <a href="#" class="no">No.000004</a>
-    </div>
-    <div class="post-body">
-      <strong>Current focus:</strong><br><br>
-
-      <div class="greentext">&gt; testing multi-agent workflows</div>
-      <div class="greentext">&gt; building games to understand state management</div>
-      <div class="greentext">&gt; documenting what actually works vs theory</div>
-
-      <br>
-      Updates: sporadic<br>
-      Response time: whenever<br>
-      Roadmap: doesn't exist
+          <div class="update-notice">
+            ⚡ <strong>SYSTEM MIGRATION ACTIVE</strong> ⚡<br>
+            Converting terminal minimalism → CyberDad™ Aesthetic<br>
+            Progress: 47% | ETA: when the vibes align
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Footer -->
-  <div class="footer">
-    [ <a href="#">top</a> ] - all trademarks and copyrights on this page are owned by their respective parties - this site uses no cookies, no tracking, no analytics
-  </div>
+  <!-- MANCALA SPLASH SCRIPT -->
+  <script>
+    (function(){
+      const splash = document.getElementById("mancalaSplash");
+      const tEl = document.getElementById("mancalaT");
+      const bar = document.getElementById("mancalaBar");
 
-</div>
+      const DURATION_MS = 10000; // 10 seconds
+      const START = performance.now();
 
+      function hide(){
+        splash.classList.add("fade-out");
+        setTimeout(() => { splash.style.display = "none"; }, 560);
+        splash.removeEventListener("click", hide);
+        window.removeEventListener("keydown", hide);
+      }
+
+      // Tap/click or any key to skip
+      splash.addEventListener("click", hide);
+      window.addEventListener("keydown", hide);
+
+      function tick(now){
+        const elapsed = now - START;
+        const remaining = Math.max(0, DURATION_MS - elapsed);
+        const secs = Math.ceil(remaining / 1000);
+
+        if (tEl) tEl.textContent = String(secs);
+
+        const pct = Math.min(100, (elapsed / DURATION_MS) * 100);
+        if (bar) bar.style.width = pct.toFixed(1) + "%";
+
+        if (elapsed >= DURATION_MS) hide();
+        else requestAnimationFrame(tick);
+      }
+
+      requestAnimationFrame(tick);
+    })();
+  </script>
 </body>
 </html>
