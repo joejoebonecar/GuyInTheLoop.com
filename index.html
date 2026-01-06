@@ -706,6 +706,13 @@ output: soon (when it behaves)
   <script>
     (function(){
       const splash = document.getElementById("mancalaSplash");
+
+      // Check if splash has already been shown this session
+      if (sessionStorage.getItem("splashShown")) {
+        splash.style.display = "none";
+        return;
+      }
+
       const tEl = document.getElementById("mancalaT");
       const bar = document.getElementById("mancalaBar");
 
@@ -717,6 +724,8 @@ output: soon (when it behaves)
         setTimeout(() => { splash.style.display = "none"; }, 560);
         splash.removeEventListener("click", hide);
         window.removeEventListener("keydown", hide);
+        // Mark splash as shown in this session
+        sessionStorage.setItem("splashShown", "true");
       }
 
       // Tap/click or any key to skip
