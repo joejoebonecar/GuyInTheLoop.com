@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fireworks Extravaganza</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            overflow: hidden;
+            background: #000;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            display: block;
+        }
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            text-align: center;
+        }
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 90%;
+            z-index: 10;
+        }
+        button {
+            padding: 20px 30px;
+            font-size: 24px;
+            font-weight: bold;
+            border: 3px solid #fff;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 120px;
+            height: 80px;
+        }
+        button.active {
+            box-shadow: 0 0 20px currentColor;
+            transform: scale(1.05);
+        }
+        #rockets { background: #ff4444; color: white; }
+        #rockets.active { background: #ff0000; }
+        #sparklers { background: #ffaa00; color: white; }
+        #sparklers.active { background: #ff8800; }
+        #bursts { background: #44ff44; color: white; }
+        #bursts.active { background: #00ff00; }
+        #fountains { background: #4444ff; color: white; }
+        #fountains.active { background: #0000ff; }
+        #stars { background: #ff44ff; color: white; }
+        #stars.active { background: #ff00ff; }
+        #clear { background: #666; color: white; }
+        #mute { background: #333; color: white; }
+        #mute.active { background: #555; }
+
+        .settings-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid #fff;
+            border-radius: 10px;
+            padding: 15px;
+            color: white;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 10;
+            transition: all 0.3s;
+        }
+        .settings-panel.collapsed {
+            padding: 10px;
+        }
+        .settings-panel.collapsed .settings-content {
+            display: none;
+        }
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+        .settings-panel.collapsed .settings-header {
+            margin-bottom: 0;
+        }
+        .settings-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            min-width: auto;
+            height: auto;
+        }
+        .setting-item {
+            margin-bottom: 15px;
+        }
+        .setting-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+        .setting-item input[type="range"] {
+            width: 200px;
+        }
+        .setting-item .value {
+            display: inline-block;
+            margin-left: 10px;
+            font-weight: bold;
+            min-width: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">Loading assets...</div>
+    <canvas id="canvas"></canvas>
+    <div class="controls">
+        <button id="rockets">🚀 ROCKETS</button>
+        <button id="sparklers">✨ SPARKLERS</button>
+        <button id="bursts">💥 BURSTS</button>
+        <button id="fountains">⛲ FOUNTAINS</button>
+        <button id="stars">⭐ STARS</button>
+        <button id="clear">CLEAR ALL</button>
+        <button id="mute">🔊 SOUND</button>
+    </div>
+
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header" onclick="toggleSettings()">
+            <h3>⚙️ SETTINGS</h3>
+            <span class="toggle-btn" id="toggleBtn">▼</span>
+        </div>
+        <div class="settings-content">
+            <div class="setting-item">
+                <label>Rocket Spawn Rate: <span class="value" id="rocketSpawnVal">30</span>ms</label>
+                <input type="range" id="rocketSpawn" min="10" max="100" value="30">
+            </div>
+            <div class="setting-item">
+                <label>Rocket Particles: <span class="value" id="rocketParticlesVal">80</span></label>
+                <input type="range" id="rocketParticles" min="30" max="150" value="80">
+            </div>
+            <div class="setting-item">
+                <label>Sparkler Rate: <span class="value" id="sparklerRateVal">5</span>/frame</label>
+                <input type="range" id="sparklerRate" min="1" max="10" value="5">
+            </div>
+            <div class="setting-item">
+                <label>Burst Spawn Rate: <span class="value" id="burstSpawnVal">20</span>ms</label>
+                <input type="range" id="burstSpawn" min="10" max="50" value="20">
+            </div>
+            <div class="setting-item">
+                <label>Burst Particles: <span class="value" id="burstParticlesVal">30</span></label>
+                <input type="range" id="burstParticles" min="15" max="60" value="30">
+            </div>
+            <div class="setting-item">
+                <label>Fountain Rate: <span class="value" id="fountainRateVal">3</span>/frame</label>
+                <input type="range" id="fountainRate" min="1" max="10" value="3">
+            </div>
+            <div class="setting-item">
+                <label>Fountain Velocity: <span class="value" id="fountainVelVal">1.0</span>x</label>
+                <input type="range" id="fountainVel" min="50" max="300" value="100">
+            </div>
+            <div class="setting-item">
+                <label>Star Count: <span class="value" id="starCountVal">100</span></label>
+                <input type="range" id="starCount" min="50" max="200" value="100">
+            </div>
+            <div class="setting-item">
+                <label>Particle Size: <span class="value" id="particleSizeVal">1.0</span>x</label>
+                <input type="range" id="particleSize" min="50" max="200" value="100">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Settings with localStorage persistence
+        const defaultSettings = {
+            rocketSpawn: 30,
+            rocketParticles: 80,
+            sparklerRate: 5,
+            burstSpawn: 20,
+            burstParticles: 30,
+            fountainRate: 3,
+            fountainVel: 1.0,
+            starCount: 100,
+            particleSize: 1.0
+        };
+
+        let settings = { ...defaultSettings };
+
+        // Load settings from localStorage
+        try {
+            const saved = localStorage.getItem('fireworksSettings');
+            if (saved) {
+                settings = { ...defaultSettings, ...JSON.parse(saved) };
+            }
+        } catch (e) {
+            console.warn('Failed to load settings:', e);
+        }
+
+        function saveSettings() {
+            try {
+                localStorage.setItem('fireworksSettings', JSON.stringify(settings));
+            } catch (e) {
+                console.warn('Failed to save settings:', e);
+            }
+        }
+
+        function toggleSettings() {
+            const panel = document.getElementById('settingsPanel');
+            const btn = document.getElementById('toggleBtn');
+            panel.classList.toggle('collapsed');
+            btn.textContent = panel.classList.contains('collapsed') ? '▶' : '▼';
+        }
+
+        // Initialize settings UI
+        function initSettings() {
+            const inputs = {
+                rocketSpawn: { el: 'rocketSpawn', val: 'rocketSpawnVal', suffix: 'ms', key: 'rocketSpawn' },
+                rocketParticles: { el: 'rocketParticles', val: 'rocketParticlesVal', suffix: '', key: 'rocketParticles' },
+                sparklerRate: { el: 'sparklerRate', val: 'sparklerRateVal', suffix: '/frame', key: 'sparklerRate' },
+                burstSpawn: { el: 'burstSpawn', val: 'burstSpawnVal', suffix: 'ms', key: 'burstSpawn' },
+                burstParticles: { el: 'burstParticles', val: 'burstParticlesVal', suffix: '', key: 'burstParticles' },
+                fountainRate: { el: 'fountainRate', val: 'fountainRateVal', suffix: '/frame', key: 'fountainRate' },
+                fountainVel: { el: 'fountainVel', val: 'fountainVelVal', suffix: 'x', key: 'fountainVel', scale: 0.01 },
+                starCount: { el: 'starCount', val: 'starCountVal', suffix: '', key: 'starCount' },
+                particleSize: { el: 'particleSize', val: 'particleSizeVal', suffix: 'x', key: 'particleSize', scale: 0.01 }
+            };
+
+            Object.entries(inputs).forEach(([key, config]) => {
+                const input = document.getElementById(config.el);
+                const display = document.getElementById(config.val);
+                const scale = config.scale || 1;
+
+                // Set initial value
+                input.value = config.scale ? settings[config.key] / scale : settings[config.key];
+                display.textContent = config.scale ? settings[config.key].toFixed(1) : settings[config.key];
+
+                input.addEventListener('input', (e) => {
+                    const value = parseFloat(e.target.value) * scale;
+                    settings[config.key] = value;
+                    display.textContent = config.scale ? value.toFixed(1) : Math.round(value);
+                    saveSettings();
+                });
+            });
+        }
+
+        const state = {
+            rockets: false,
+            sparklers: false,
+            bursts: false,
+            fountains: false,
+            stars: false,
+            muted: false
+        };
+
+        const particles = {
+            rockets: [],
+            rocketExplosions: [],
+            sparklers: [],
+            bursts: [],
+            fountains: [],
+            stars: []
+        };
+
+        let rocketTimer = 0;
+        let burstTimer = 0;
+        let sparklerTimer = 0;
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(freq, duration) {
+            if (state.muted) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function randomHSL() {
+            return `hsl(${Math.random() * 360}, 100%, ${50 + Math.random() * 30}%)`;
+        }
+
+        // Asset loading
+        const assets = {
+            mountains: null,
+            cityscape: null,
+            trees: null,
+            grainCanvas: null,
+            bokehCanvas: null,
+            particleSprites: []
+        };
+
+        function loadImage(src) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = reject;
+                img.src = src;
+            });
+        }
+
+        function generateGrain() {
+            const grainCanvas = document.createElement('canvas');
+            grainCanvas.width = 512;
+            grainCanvas.height = 512;
+            const grainCtx = grainCanvas.getContext('2d');
+            const imageData = grainCtx.createImageData(512, 512);
+            for (let i = 0; i < imageData.data.length; i += 4) {
+                const gray = Math.random() * 60;
+                imageData.data[i] = imageData.data[i + 1] = imageData.data[i + 2] = gray;
+                imageData.data[i + 3] = gray;
+            }
+            grainCtx.putImageData(imageData, 0, 0);
+            return grainCanvas;
+        }
+
+        function generateBokeh() {
+            const bokehCanvas = document.createElement('canvas');
+            bokehCanvas.width = canvas.width;
+            bokehCanvas.height = canvas.height;
+            const bokehCtx = bokehCanvas.getContext('2d');
+            const colors = ['rgba(255,140,0,0.3)', 'rgba(255,215,0,0.3)', 'rgba(255,105,180,0.3)', 'rgba(147,112,219,0.3)', 'rgba(255,69,0,0.3)'];
+            for (let i = 0; i < 30; i++) {
+                const x = Math.random() * bokehCanvas.width;
+                const y = Math.random() * bokehCanvas.height;
+                const r = 50 + Math.random() * 150;
+                const gradient = bokehCtx.createRadialGradient(x, y, 0, x, y, r);
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                gradient.addColorStop(0, color);
+                gradient.addColorStop(1, 'rgba(0,0,0,0)');
+                bokehCtx.fillStyle = gradient;
+                bokehCtx.fillRect(0, 0, bokehCanvas.width, bokehCanvas.height);
+            }
+            return bokehCanvas;
+        }
+
+        function generateParticleSprites() {
+            const sprites = [];
+            const spriteSize = 32;
+
+            // Soft glow circle
+            const glow = document.createElement('canvas');
+            glow.width = glow.height = spriteSize;
+            const glowCtx = glow.getContext('2d');
+            const gradient = glowCtx.createRadialGradient(spriteSize/2, spriteSize/2, 0, spriteSize/2, spriteSize/2, spriteSize/2);
+            gradient.addColorStop(0, 'rgba(255,255,255,1)');
+            gradient.addColorStop(0.3, 'rgba(255,255,255,0.6)');
+            gradient.addColorStop(1, 'rgba(255,255,255,0)');
+            glowCtx.fillStyle = gradient;
+            glowCtx.fillRect(0, 0, spriteSize, spriteSize);
+            sprites.push(glow);
+
+            // Star burst
+            const star = document.createElement('canvas');
+            star.width = star.height = spriteSize;
+            const starCtx = star.getContext('2d');
+            starCtx.fillStyle = 'white';
+            starCtx.shadowBlur = 10;
+            starCtx.shadowColor = 'white';
+            starCtx.beginPath();
+            for (let i = 0; i < 8; i++) {
+                const angle = (Math.PI * 2 * i) / 8;
+                const r = i % 2 === 0 ? spriteSize/2 - 2 : spriteSize/4;
+                const x = spriteSize/2 + Math.cos(angle) * r;
+                const y = spriteSize/2 + Math.sin(angle) * r;
+                if (i === 0) starCtx.moveTo(x, y);
+                else starCtx.lineTo(x, y);
+            }
+            starCtx.closePath();
+            starCtx.fill();
+            sprites.push(star);
+
+            // Sparkle
+            const sparkle = document.createElement('canvas');
+            sparkle.width = sparkle.height = spriteSize;
+            const sparkleCtx = sparkle.getContext('2d');
+            sparkleCtx.strokeStyle = 'white';
+            sparkleCtx.lineWidth = 2;
+            sparkleCtx.shadowBlur = 8;
+            sparkleCtx.shadowColor = 'white';
+            sparkleCtx.beginPath();
+            sparkleCtx.moveTo(spriteSize/2, 2);
+            sparkleCtx.lineTo(spriteSize/2, spriteSize - 2);
+            sparkleCtx.moveTo(2, spriteSize/2);
+            sparkleCtx.lineTo(spriteSize - 2, spriteSize/2);
+            sparkleCtx.stroke();
+            sprites.push(sparkle);
+
+            return sprites;
+        }
+
+        async function loadAssets() {
+            try {
+                // Load background images
+                const [mountains, cityscape, trees] = await Promise.all([
+                    loadImage('assetsfireworks/Gemini_Generated_Image_iigq7riigq7riigq.png'),
+                    loadImage('assetsfireworks/Gemini_Generated_Image_u90wuju90wuju90w.png'),
+                    loadImage('assetsfireworks/Gemini_Generated_Image_8wofks8wofks8wof.png')
+                ]);
+
+                assets.mountains = mountains;
+                assets.cityscape = cityscape;
+                assets.trees = trees;
+                assets.grainCanvas = generateGrain();
+                assets.bokehCanvas = generateBokeh();
+                assets.particleSprites = generateParticleSprites();
+
+                document.getElementById('loading').style.display = 'none';
+                initSettings();
+                animate();
+            } catch (e) {
+                console.error('Failed to load assets:', e);
+                document.getElementById('loading').textContent = 'Failed to load assets. Starting anyway...';
+                setTimeout(() => {
+                    document.getElementById('loading').style.display = 'none';
+                    assets.grainCanvas = generateGrain();
+                    assets.bokehCanvas = generateBokeh();
+                    assets.particleSprites = generateParticleSprites();
+                    initSettings();
+                    animate();
+                }, 1000);
+            }
+        }
+
+        class Rocket {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height;
+                this.targetY = canvas.height * (0.2 + Math.random() * 0.3);
+                this.speed = 8 + Math.random() * 4;
+                this.color = randomHSL();
+                this.trail = [];
+            }
+            update() {
+                this.trail.push({x: this.x, y: this.y});
+                if (this.trail.length > 10) this.trail.shift();
+                this.y -= this.speed;
+                return this.y > this.targetY;
+            }
+            draw() {
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 3;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                this.trail.forEach((p, i) => {
+                    if (i === 0) ctx.moveTo(p.x, p.y);
+                    else ctx.lineTo(p.x, p.y);
+                });
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+            explode() {
+                playSound(800, 0.1);
+                const count = settings.rocketParticles;
+                for (let i = 0; i < count; i++) {
+                    const angle = (Math.PI * 2 * i) / count;
+                    const speed = 4 + Math.random() * 4;
+                    particles.rocketExplosions.push({
+                        x: this.x,
+                        y: this.y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        life: 80 + Math.random() * 40,
+                        maxLife: 80 + Math.random() * 40,
+                        color: this.color,
+                        size: (2 + Math.random() * 2) * settings.particleSize,
+                        sparkle: Math.random() > 0.5,
+                        sprite: Math.floor(Math.random() * assets.particleSprites.length)
+                    });
+                }
+            }
+        }
+
+        class Particle {
+            constructor(x, y, vx, vy, color, life, size) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.color = color;
+                this.life = life;
+                this.maxLife = life;
+                this.size = size * settings.particleSize;
+                this.sprite = Math.floor(Math.random() * assets.particleSprites.length);
+            }
+            update(gravity = 0.1) {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += gravity;
+                this.life--;
+                return this.life > 0;
+            }
+            draw() {
+                const alpha = this.life / this.maxLife;
+                ctx.globalAlpha = alpha;
+
+                if (assets.particleSprites.length > 0) {
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    const sprite = assets.particleSprites[this.sprite];
+
+                    // Tint the sprite with the particle color
+                    ctx.globalCompositeOperation = 'source-over';
+                    ctx.drawImage(sprite, -this.size, -this.size, this.size * 2, this.size * 2);
+
+                    ctx.globalCompositeOperation = 'multiply';
+                    ctx.fillStyle = this.color;
+                    ctx.fillRect(-this.size, -this.size, this.size * 2, this.size * 2);
+
+                    ctx.globalCompositeOperation = 'lighter';
+                    ctx.drawImage(sprite, -this.size, -this.size, this.size * 2, this.size * 2);
+
+                    ctx.restore();
+                } else {
+                    ctx.fillStyle = this.color;
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        function updateRockets() {
+            if (!state.rockets) return;
+            if (rocketTimer++ % settings.rocketSpawn === 0) {
+                particles.rockets.push(new Rocket());
+                playSound(400, 0.05);
+            }
+            particles.rockets = particles.rockets.filter(r => {
+                const alive = r.update();
+                r.draw();
+                if (!alive) r.explode();
+                return alive;
+            });
+
+            particles.rocketExplosions = particles.rocketExplosions.filter(p => {
+                const alive = p.life-- > 0;
+                if (alive) {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.12;
+                    p.vx *= 0.98;
+
+                    const alpha = p.life / p.maxLife;
+                    ctx.globalAlpha = alpha;
+
+                    if (assets.particleSprites.length > 0 && p.sprite !== undefined) {
+                        const sprite = assets.particleSprites[p.sprite];
+                        ctx.save();
+                        ctx.translate(p.x, p.y);
+
+                        if (p.sparkle && Math.random() > 0.7) {
+                            ctx.shadowBlur = 15;
+                            ctx.shadowColor = p.color;
+                        }
+
+                        ctx.globalCompositeOperation = 'lighter';
+                        ctx.drawImage(sprite, -p.size, -p.size, p.size * 2, p.size * 2);
+                        ctx.restore();
+                    } else {
+                        ctx.fillStyle = p.color;
+                        if (p.sparkle && Math.random() > 0.7) {
+                            ctx.shadowBlur = 8;
+                            ctx.shadowColor = p.color;
+                        }
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+
+                    ctx.shadowBlur = 0;
+                    ctx.globalAlpha = 1;
+                }
+                return alive;
+            });
+        }
+
+        function updateSparklers() {
+            if (!state.sparklers) return;
+            if (sparklerTimer++ % 2 === 0) {
+                for (let i = 0; i < settings.sparklerRate; i++) {
+                    particles.sparklers.push(new Particle(
+                        Math.random() * canvas.width,
+                        -10,
+                        (Math.random() - 0.5) * 2,
+                        Math.random() * 2 + 1,
+                        randomHSL(),
+                        100 + Math.random() * 50,
+                        2 + Math.random() * 2
+                    ));
+                }
+            }
+            particles.sparklers = particles.sparklers.filter(p => {
+                const alive = p.update(0.05);
+                p.draw();
+                return alive && p.y < canvas.height;
+            });
+        }
+
+        function updateBursts() {
+            if (!state.bursts) return;
+            if (burstTimer++ % settings.burstSpawn === 0) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height * 0.7;
+                const color = randomHSL();
+                playSound(600, 0.08);
+                for (let i = 0; i < settings.burstParticles; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    particles.bursts.push(new Particle(
+                        x, y,
+                        Math.cos(angle) * (2 + Math.random() * 4),
+                        Math.sin(angle) * (2 + Math.random() * 4),
+                        color,
+                        40 + Math.random() * 40,
+                        2 + Math.random() * 3
+                    ));
+                }
+            }
+            particles.bursts = particles.bursts.filter(p => {
+                const alive = p.update(0.15);
+                p.draw();
+                return alive;
+            });
+        }
+
+        function updateFountains() {
+            if (!state.fountains) return;
+            for (let i = 0; i < settings.fountainRate; i++) {
+                particles.fountains.push(new Particle(
+                    canvas.width / 2 + (Math.random() - 0.5) * 150,
+                    canvas.height,
+                    (Math.random() - 0.5) * 6,
+                    -(12 + Math.random() * 9) * settings.fountainVel,
+                    randomHSL(),
+                    80 + Math.random() * 40,
+                    2 + Math.random() * 2
+                ));
+            }
+            particles.fountains = particles.fountains.filter(p => {
+                const alive = p.update(0.2);
+                p.draw();
+                return alive && p.y < canvas.height;
+            });
+        }
+
+        function updateStars() {
+            if (!state.stars) return;
+            if (particles.stars.length < settings.starCount) {
+                particles.stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height * 0.8,
+                    size: (2 + Math.random() * 3) * settings.particleSize,
+                    color: randomHSL(),
+                    twinkle: Math.random() * Math.PI * 2,
+                    speed: 0.02 + Math.random() * 0.03
+                });
+            }
+            particles.stars.forEach(s => {
+                s.twinkle += s.speed;
+                s.y += Math.sin(s.twinkle) * 0.5;
+                ctx.globalAlpha = 0.5 + Math.sin(s.twinkle) * 0.5;
+                ctx.fillStyle = s.color;
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = s.color;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.shadowBlur = 0;
+            ctx.globalAlpha = 1;
+        }
+
+        function drawBackgrounds() {
+            // Mountains at bottom
+            if (assets.mountains) {
+                const scale = canvas.width / assets.mountains.width;
+                const h = assets.mountains.height * scale;
+                ctx.globalAlpha = 0.8;
+                ctx.drawImage(assets.mountains, 0, canvas.height - h, canvas.width, h);
+                ctx.globalAlpha = 1;
+            }
+
+            // Bokeh overlay
+            if (assets.bokehCanvas) {
+                ctx.globalAlpha = 0.3;
+                ctx.drawImage(assets.bokehCanvas, 0, 0);
+                ctx.globalAlpha = 1;
+            }
+
+            // Grain texture tiled
+            if (assets.grainCanvas) {
+                ctx.globalAlpha = 0.1;
+                const pattern = ctx.createPattern(assets.grainCanvas, 'repeat');
+                ctx.fillStyle = pattern;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.globalAlpha = 1;
+            }
+
+            // Reflection gradient at bottom
+            const gradient = ctx.createLinearGradient(0, canvas.height * 0.8, 0, canvas.height);
+            gradient.addColorStop(0, 'rgba(0,0,0,0)');
+            gradient.addColorStop(1, 'rgba(0,0,0,0.6)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, canvas.height * 0.8, canvas.width, canvas.height * 0.2);
+
+            // Trees frame at edges
+            if (assets.trees) {
+                ctx.globalAlpha = 0.9;
+                const scale = canvas.height / assets.trees.height;
+                const w = assets.trees.width * scale;
+                ctx.drawImage(assets.trees, 0, 0, w, canvas.height);
+                ctx.drawImage(assets.trees, canvas.width - w, 0, w, canvas.height);
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        function animate() {
+            // Clear with slight trail effect
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw static backgrounds first
+            drawBackgrounds();
+
+            // Use lighter blending for particles
+            ctx.globalCompositeOperation = 'lighter';
+
+            updateRockets();
+            updateSparklers();
+            updateBursts();
+            updateFountains();
+            updateStars();
+
+            ctx.globalCompositeOperation = 'source-over';
+
+            requestAnimationFrame(animate);
+        }
+
+        document.getElementById('rockets').addEventListener('click', function() {
+            state.rockets = !state.rockets;
+            this.classList.toggle('active');
+            if (!state.rockets) {
+                particles.rockets = [];
+                particles.rocketExplosions = [];
+            }
+        });
+
+        document.getElementById('sparklers').addEventListener('click', function() {
+            state.sparklers = !state.sparklers;
+            this.classList.toggle('active');
+            if (!state.sparklers) particles.sparklers = [];
+        });
+
+        document.getElementById('bursts').addEventListener('click', function() {
+            state.bursts = !state.bursts;
+            this.classList.toggle('active');
+            if (!state.bursts) particles.bursts = [];
+        });
+
+        document.getElementById('fountains').addEventListener('click', function() {
+            state.fountains = !state.fountains;
+            this.classList.toggle('active');
+            if (!state.fountains) particles.fountains = [];
+        });
+
+        document.getElementById('stars').addEventListener('click', function() {
+            state.stars = !state.stars;
+            this.classList.toggle('active');
+            if (!state.stars) particles.stars = [];
+        });
+
+        document.getElementById('clear').addEventListener('click', function() {
+            state.rockets = state.sparklers = state.bursts = state.fountains = state.stars = false;
+            Object.keys(particles).forEach(key => particles[key] = []);
+            document.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+        });
+
+        document.getElementById('mute').addEventListener('click', function() {
+            state.muted = !state.muted;
+            this.classList.toggle('active');
+            this.textContent = state.muted ? '🔇 MUTED' : '🔊 SOUND';
+        });
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            assets.bokehCanvas = generateBokeh();
+        });
+
+        loadAssets();
+    </script>
+</body>
+</html>
