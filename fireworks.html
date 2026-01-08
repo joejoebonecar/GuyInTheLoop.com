@@ -310,57 +310,8 @@
 
         // Asset loading
         const assets = {
-            mountains: null,
-            cityscape: null,
-            trees: null,
-            grainCanvas: null,
-            bokehCanvas: null,
             particleSprites: []
         };
-
-        function loadImage(src) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onload = () => resolve(img);
-                img.onerror = reject;
-                img.src = src;
-            });
-        }
-
-        function generateGrain() {
-            const grainCanvas = document.createElement('canvas');
-            grainCanvas.width = 512;
-            grainCanvas.height = 512;
-            const grainCtx = grainCanvas.getContext('2d');
-            const imageData = grainCtx.createImageData(512, 512);
-            for (let i = 0; i < imageData.data.length; i += 4) {
-                const gray = Math.random() * 60;
-                imageData.data[i] = imageData.data[i + 1] = imageData.data[i + 2] = gray;
-                imageData.data[i + 3] = gray;
-            }
-            grainCtx.putImageData(imageData, 0, 0);
-            return grainCanvas;
-        }
-
-        function generateBokeh() {
-            const bokehCanvas = document.createElement('canvas');
-            bokehCanvas.width = canvas.width;
-            bokehCanvas.height = canvas.height;
-            const bokehCtx = bokehCanvas.getContext('2d');
-            const colors = ['rgba(255,140,0,0.3)', 'rgba(255,215,0,0.3)', 'rgba(255,105,180,0.3)', 'rgba(147,112,219,0.3)', 'rgba(255,69,0,0.3)'];
-            for (let i = 0; i < 30; i++) {
-                const x = Math.random() * bokehCanvas.width;
-                const y = Math.random() * bokehCanvas.height;
-                const r = 50 + Math.random() * 150;
-                const gradient = bokehCtx.createRadialGradient(x, y, 0, x, y, r);
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                gradient.addColorStop(0, color);
-                gradient.addColorStop(1, 'rgba(0,0,0,0)');
-                bokehCtx.fillStyle = gradient;
-                bokehCtx.fillRect(0, 0, bokehCanvas.width, bokehCanvas.height);
-            }
-            return bokehCanvas;
-        }
 
         function generateParticleSprites() {
             const sprites = [];
@@ -418,36 +369,10 @@
         }
 
         async function loadAssets() {
-            try {
-                // Load background images
-                const [mountains, cityscape, trees] = await Promise.all([
-                    loadImage('assetsfireworks/Gemini_Generated_Image_iigq7riigq7riigq.png'),
-                    loadImage('assetsfireworks/Gemini_Generated_Image_u90wuju90wuju90w.png'),
-                    loadImage('assetsfireworks/Gemini_Generated_Image_8wofks8wofks8wof.png')
-                ]);
-
-                assets.mountains = mountains;
-                assets.cityscape = cityscape;
-                assets.trees = trees;
-                assets.grainCanvas = generateGrain();
-                assets.bokehCanvas = generateBokeh();
-                assets.particleSprites = generateParticleSprites();
-
-                document.getElementById('loading').style.display = 'none';
-                initSettings();
-                animate();
-            } catch (e) {
-                console.error('Failed to load assets:', e);
-                document.getElementById('loading').textContent = 'Failed to load assets. Starting anyway...';
-                setTimeout(() => {
-                    document.getElementById('loading').style.display = 'none';
-                    assets.grainCanvas = generateGrain();
-                    assets.bokehCanvas = generateBokeh();
-                    assets.particleSprites = generateParticleSprites();
-                    initSettings();
-                    animate();
-                }, 1000);
-            }
+            assets.particleSprites = generateParticleSprites();
+            document.getElementById('loading').style.display = 'none';
+            initSettings();
+            animate();
         }
 
         class Rocket {
@@ -704,57 +629,10 @@
             ctx.globalAlpha = 1;
         }
 
-        function drawBackgrounds() {
-            // Mountains at bottom
-            if (assets.mountains) {
-                const scale = canvas.width / assets.mountains.width;
-                const h = assets.mountains.height * scale;
-                ctx.globalAlpha = 0.8;
-                ctx.drawImage(assets.mountains, 0, canvas.height - h, canvas.width, h);
-                ctx.globalAlpha = 1;
-            }
-
-            // Bokeh overlay
-            if (assets.bokehCanvas) {
-                ctx.globalAlpha = 0.3;
-                ctx.drawImage(assets.bokehCanvas, 0, 0);
-                ctx.globalAlpha = 1;
-            }
-
-            // Grain texture tiled
-            if (assets.grainCanvas) {
-                ctx.globalAlpha = 0.1;
-                const pattern = ctx.createPattern(assets.grainCanvas, 'repeat');
-                ctx.fillStyle = pattern;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.globalAlpha = 1;
-            }
-
-            // Reflection gradient at bottom
-            const gradient = ctx.createLinearGradient(0, canvas.height * 0.8, 0, canvas.height);
-            gradient.addColorStop(0, 'rgba(0,0,0,0)');
-            gradient.addColorStop(1, 'rgba(0,0,0,0.6)');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, canvas.height * 0.8, canvas.width, canvas.height * 0.2);
-
-            // Trees frame at edges
-            if (assets.trees) {
-                ctx.globalAlpha = 0.9;
-                const scale = canvas.height / assets.trees.height;
-                const w = assets.trees.width * scale;
-                ctx.drawImage(assets.trees, 0, 0, w, canvas.height);
-                ctx.drawImage(assets.trees, canvas.width - w, 0, w, canvas.height);
-                ctx.globalAlpha = 1;
-            }
-        }
-
         function animate() {
             // Clear with slight trail effect
             ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Draw static backgrounds first
-            drawBackgrounds();
 
             // Use lighter blending for particles
             ctx.globalCompositeOperation = 'lighter';
@@ -818,7 +696,6 @@
         window.addEventListener('resize', () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            assets.bokehCanvas = generateBokeh();
         });
 
         loadAssets();
