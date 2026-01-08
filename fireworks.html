@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fireworks Extravaganza</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            overflow: hidden;
+            background: #000;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            display: block;
+        }
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            text-align: center;
+        }
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 90%;
+            z-index: 10;
+        }
+        button {
+            padding: 20px 30px;
+            font-size: 24px;
+            font-weight: bold;
+            border: 3px solid #fff;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 120px;
+            height: 80px;
+        }
+        button.active {
+            box-shadow: 0 0 20px currentColor;
+            transform: scale(1.05);
+        }
+        #rockets { background: #ff4444; color: white; }
+        #rockets.active { background: #ff0000; }
+        #sparklers { background: #ffaa00; color: white; }
+        #sparklers.active { background: #ff8800; }
+        #bursts { background: #44ff44; color: white; }
+        #bursts.active { background: #00ff00; }
+        #fountains { background: #4444ff; color: white; }
+        #fountains.active { background: #0000ff; }
+        #stars { background: #ff44ff; color: white; }
+        #stars.active { background: #ff00ff; }
+        #clear { background: #666; color: white; }
+        #mute { background: #333; color: white; }
+        #mute.active { background: #555; }
+
+        .settings-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid #fff;
+            border-radius: 10px;
+            padding: 15px;
+            color: white;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 10;
+            transition: all 0.3s;
+        }
+        .settings-panel.collapsed {
+            padding: 10px;
+        }
+        .settings-panel.collapsed .settings-content {
+            display: none;
+        }
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+        .settings-panel.collapsed .settings-header {
+            margin-bottom: 0;
+        }
+        .settings-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            min-width: auto;
+            height: auto;
+        }
+        .setting-item {
+            margin-bottom: 15px;
+        }
+        .setting-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+        .setting-item input[type="range"] {
+            width: 200px;
+        }
+        .setting-item .value {
+            display: inline-block;
+            margin-left: 10px;
+            font-weight: bold;
+            min-width: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">Loading assets...</div>
+    <canvas id="canvas"></canvas>
+    <div class="controls">
+        <button id="rockets">🚀 ROCKETS</button>
+        <button id="sparklers">✨ SPARKLERS</button>
+        <button id="bursts">💥 BURSTS</button>
+        <button id="fountains">⛲ FOUNTAINS</button>
+        <button id="stars">⭐ STARS</button>
+        <button id="clear">CLEAR ALL</button>
+        <button id="mute">🔊 SOUND</button>
+    </div>
+
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header" onclick="toggleSettings()">
+            <h3>⚙️ SETTINGS</h3>
+            <span class="toggle-btn" id="toggleBtn">▼</span>
+        </div>
+        <div class="settings-content">
+            <div class="setting-item">
+                <label>Rocket Spawn Rate: <span class="value" id="rocketSpawnVal">30</span>ms</label>
+                <input type="range" id="rocketSpawn" min="10" max="100" value="30">
+            </div>
+            <div class="setting-item">
+                <label>Rocket Particles: <span class="value" id="rocketParticlesVal">80</span></label>
+                <input type="range" id="rocketParticles" min="30" max="150" value="80">
+            </div>
+            <div class="setting-item">
+                <label>Sparkler Rate: <span class="value" id="sparklerRateVal">5</span>/frame</label>
+                <input type="range" id="sparklerRate" min="1" max="10" value="5">
+            </div>
+            <div class="setting-item">
+                <label>Burst Spawn Rate: <span class="value" id="burstSpawnVal">20</span>ms</label>
+                <input type="range" id="burstSpawn" min="10" max="50" value="20">
+            </div>
+            <div class="setting-item">
+                <label>Burst Particles: <span class="value" id="burstParticlesVal">30</span></label>
+                <input type="range" id="burstParticles" min="15" max="60" value="30">
+            </div>
+            <div class="setting-item">
+                <label>Fountain Rate: <span class="value" id="fountainRateVal">3</span>/frame</label>
+                <input type="range" id="fountainRate" min="1" max="10" value="3">
+            </div>
+            <div class="setting-item">
+                <label>Fountain Velocity: <span class="value" id="fountainVelVal">1.0</span>x</label>
+                <input type="range" id="fountainVel" min="50" max="300" value="100">
+            </div>
+            <div class="setting-item">
+                <label>Star Count: <span class="value" id="starCountVal">100</span></label>
+                <input type="range" id="starCount" min="50" max="200" value="100">
+            </div>
+            <div class="setting-item">
+                <label>Particle Size: <span class="value" id="particleSizeVal">1.0</span>x</label>
+                <input type="range" id="particleSize" min="50" max="200" value="100">
+            </div>
+        </div>
+    </div>
+
+    <script src="fireworks.js"></script>
+</body>
+</html>

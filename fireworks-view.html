@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fireworks Extravaganza - /gitl/</title>
+    <style>
+        :root {
+            --bg: #f0e0d6;
+            --fg: #800000;
+            --border: #d9bfb7;
+            --link: #34345c;
+            --link-hover: #dd0000;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: arial, helvetica, sans-serif;
+            overflow: hidden;
+        }
+
+        .header {
+            background: var(--bg);
+            border-bottom: 2px solid var(--border);
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            position: relative;
+        }
+
+        .header.hidden {
+            display: none;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            color: var(--fg);
+            margin: 0;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .header-btn {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--link);
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 11px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+        }
+
+        .header-btn:hover {
+            color: var(--link-hover);
+            border-color: var(--link-hover);
+        }
+
+        .fireworks-container {
+            position: relative;
+            width: 100vw;
+            height: calc(100vh - 42px);
+            background: #000;
+            border: 2px solid var(--border);
+            overflow: hidden;
+        }
+
+        .fireworks-container.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            border: none;
+            z-index: 9999;
+        }
+
+        .fireworks-container.windowed {
+            max-width: 900px;
+            max-height: 600px;
+            margin: 20px auto;
+            height: calc(100vh - 82px);
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 95%;
+            z-index: 10;
+        }
+
+        button {
+            padding: 15px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            border: 3px solid #fff;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 100px;
+            touch-action: manipulation;
+        }
+
+        button.active {
+            box-shadow: 0 0 20px currentColor;
+            transform: scale(1.05);
+        }
+
+        #rockets { background: #ff4444; color: white; }
+        #rockets.active { background: #ff0000; }
+        #sparklers { background: #ffaa00; color: white; }
+        #sparklers.active { background: #ff8800; }
+        #bursts { background: #44ff44; color: white; }
+        #bursts.active { background: #00ff00; }
+        #fountains { background: #4444ff; color: white; }
+        #fountains.active { background: #0000ff; }
+        #stars { background: #ff44ff; color: white; }
+        #stars.active { background: #ff00ff; }
+        #clear { background: #666; color: white; }
+        #mute { background: #333; color: white; }
+        #mute.active { background: #555; }
+
+        .settings-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #fff;
+            border-radius: 10px;
+            padding: 15px;
+            color: white;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 10;
+            transition: all 0.3s;
+        }
+
+        .settings-panel.collapsed {
+            padding: 10px;
+        }
+
+        .settings-panel.collapsed .settings-content {
+            display: none;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .settings-panel.collapsed .settings-header {
+            margin-bottom: 0;
+        }
+
+        .settings-header h3 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0;
+            min-width: auto;
+        }
+
+        .setting-item {
+            margin-bottom: 12px;
+        }
+
+        .setting-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 11px;
+        }
+
+        .setting-item input[type="range"] {
+            width: 180px;
+        }
+
+        .setting-item .value {
+            display: inline-block;
+            margin-left: 10px;
+            font-weight: bold;
+            min-width: 40px;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 14px;
+            }
+
+            .header-btn {
+                padding: 4px 8px;
+                font-size: 10px;
+            }
+
+            button {
+                padding: 12px 16px;
+                font-size: 14px;
+                min-width: 80px;
+            }
+
+            .controls {
+                gap: 5px;
+                bottom: 10px;
+            }
+
+            .settings-panel {
+                top: 10px;
+                right: 10px;
+                font-size: 12px;
+                max-width: calc(100% - 20px);
+            }
+
+            .setting-item input[type="range"] {
+                width: 140px;
+            }
+
+            .fireworks-container.windowed {
+                margin: 10px;
+                max-width: calc(100vw - 20px);
+                height: calc(100vh - 62px);
+            }
+        }
+
+        @media (max-width: 480px) {
+            button {
+                padding: 10px 12px;
+                font-size: 12px;
+                min-width: 70px;
+            }
+
+            .settings-header h3 {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header" id="header">
+        <h1>🎆 Fireworks Extravaganza - /gitl/</h1>
+        <div class="header-controls">
+            <button class="header-btn" id="toggleMode">Windowed</button>
+            <a href="index.html" class="header-btn">← Back</a>
+        </div>
+    </div>
+
+    <div class="fireworks-container" id="container">
+        <canvas id="canvas"></canvas>
+
+        <div class="controls">
+            <button id="rockets">🚀 ROCKETS</button>
+            <button id="sparklers">✨ SPARKLERS</button>
+            <button id="bursts">💥 BURSTS</button>
+            <button id="fountains">⛲ FOUNTAINS</button>
+            <button id="stars">⭐ STARS</button>
+            <button id="clear">CLEAR ALL</button>
+            <button id="mute">🔊 SOUND</button>
+        </div>
+
+        <div class="settings-panel" id="settingsPanel">
+            <div class="settings-header" onclick="toggleSettings()">
+                <h3>⚙️ SETTINGS</h3>
+                <span class="toggle-btn" id="toggleBtn">▼</span>
+            </div>
+            <div class="settings-content">
+                <div class="setting-item">
+                    <label>Rocket Spawn Rate: <span class="value" id="rocketSpawnVal">30</span>ms</label>
+                    <input type="range" id="rocketSpawn" min="10" max="100" value="30">
+                </div>
+                <div class="setting-item">
+                    <label>Rocket Particles: <span class="value" id="rocketParticlesVal">80</span></label>
+                    <input type="range" id="rocketParticles" min="30" max="150" value="80">
+                </div>
+                <div class="setting-item">
+                    <label>Sparkler Rate: <span class="value" id="sparklerRateVal">5</span>/frame</label>
+                    <input type="range" id="sparklerRate" min="1" max="10" value="5">
+                </div>
+                <div class="setting-item">
+                    <label>Burst Spawn Rate: <span class="value" id="burstSpawnVal">20</span>ms</label>
+                    <input type="range" id="burstSpawn" min="10" max="50" value="20">
+                </div>
+                <div class="setting-item">
+                    <label>Burst Particles: <span class="value" id="burstParticlesVal">30</span></label>
+                    <input type="range" id="burstParticles" min="15" max="60" value="30">
+                </div>
+                <div class="setting-item">
+                    <label>Fountain Rate: <span class="value" id="fountainRateVal">3</span>/frame</label>
+                    <input type="range" id="fountainRate" min="1" max="10" value="3">
+                </div>
+                <div class="setting-item">
+                    <label>Fountain Velocity: <span class="value" id="fountainVelVal">1.0</span>x</label>
+                    <input type="range" id="fountainVel" min="50" max="300" value="100">
+                </div>
+                <div class="setting-item">
+                    <label>Star Count: <span class="value" id="starCountVal">100</span></label>
+                    <input type="range" id="starCount" min="50" max="200" value="100">
+                </div>
+                <div class="setting-item">
+                    <label>Particle Size: <span class="value" id="particleSizeVal">1.0</span>x</label>
+                    <input type="range" id="particleSize" min="50" max="200" value="100">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="fireworks.js"></script>
+    <script>
+        // Windowed/Fullscreen toggle
+        const container = document.getElementById('container');
+        const header = document.getElementById('header');
+        const toggleBtn = document.getElementById('toggleMode');
+        let isWindowed = false;
+
+        toggleBtn.addEventListener('click', () => {
+            isWindowed = !isWindowed;
+
+            if (isWindowed) {
+                container.classList.add('windowed');
+                container.classList.remove('fullscreen');
+                header.classList.remove('hidden');
+                toggleBtn.textContent = 'Fullscreen';
+            } else {
+                container.classList.remove('windowed');
+                container.classList.add('fullscreen');
+                header.classList.add('hidden');
+                toggleBtn.textContent = 'Windowed';
+            }
+
+            // Trigger canvas resize
+            window.dispatchEvent(new Event('resize'));
+        });
+
+        // Start in fullscreen mode on mobile
+        if (window.innerWidth <= 768) {
+            toggleBtn.click();
+        }
+    </script>
+</body>
+</html>
