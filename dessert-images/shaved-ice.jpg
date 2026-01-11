@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <defs>
+    <linearGradient id="rainbow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF0000;stop-opacity:1" />
+      <stop offset="16.67%" style="stop-color:#FF7F00;stop-opacity:1" />
+      <stop offset="33.33%" style="stop-color:#FFFF00;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#00FF00;stop-opacity:1" />
+      <stop offset="66.67%" style="stop-color:#0000FF;stop-opacity:1" />
+      <stop offset="83.33%" style="stop-color:#4B0082;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#9400D3;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="white"/>
+  <circle cx="200" cy="220" r="150" fill="url(#rainbow)" opacity="0.8"/>
+  <text x="200" y="200" font-family="Arial" font-size="24" fill="#333" text-anchor="middle">🧊 Shaved Ice</text>
+  <text x="200" y="240" font-family="Arial" font-size="16" fill="#666" text-anchor="middle">(Upload your photo)</text>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="white"/>
+  <rect x="100" y="280" width="200" height="30" fill="#90EE90" opacity="0.9"/>
+  <rect x="100" y="250" width="200" height="30" fill="#FFFFFF" opacity="0.9"/>
+  <rect x="100" y="220" width="200" height="30" fill="#7CCD7C" opacity="0.9"/>
+  <rect x="100" y="190" width="200" height="30" fill="#FFFFFF" opacity="0.9"/>
+  <rect x="100" y="160" width="200" height="30" fill="#228B22" opacity="0.9"/>
+  <text x="200" y="130" font-family="Arial" font-size="22" fill="#333" text-anchor="middle">🟩 Rau Câu Jelly</text>
+  <text x="200" y="340" font-family="Arial" font-size="16" fill="#666" text-anchor="middle">(Upload your photo)</text>
+</svg>

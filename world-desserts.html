@@ -23,9 +23,9 @@
 
         .dessert-container {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 30px;
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -37,6 +37,7 @@
             box-shadow: 0 8px 16px rgba(0,0,0,0.3);
             cursor: pointer;
             transition: transform 0.3s ease;
+            background: white;
         }
 
         .dessert-card:hover {
@@ -46,8 +47,10 @@
         .dessert-card img {
             width: 100%;
             height: 300px;
-            object-fit: cover;
+            object-fit: contain;
             display: block;
+            background: white;
+            padding: 10px;
         }
 
         .info-box {
@@ -92,7 +95,7 @@
     <div class="dessert-container">
         <!-- Dragon's Beard -->
         <div class="dessert-card">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23f5f5f5' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999' font-size='20' font-family='Arial'%3EDragon's Beard%3C/text%3E%3C/svg%3E" alt="Dragon's Beard Candy">
+            <img src="dessert-images/dragons-beard.jpg" alt="Dragon's Beard Candy">
             <div class="info-box">
                 <div class="country">🇨🇳 From: China</div>
                 <h2>Dragon's Beard Candy</h2>
@@ -102,7 +105,7 @@
 
         <!-- Beaver Tails -->
         <div class="dessert-card">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23d4a574' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23fff' font-size='20' font-family='Arial'%3EBeaver Tails%3C/text%3E%3C/svg%3E" alt="Beaver Tails">
+            <img src="dessert-images/beaver-tails.jpg" alt="Beaver Tails">
             <div class="info-box">
                 <div class="country">🇨🇦 From: Canada</div>
                 <h2>Beaver Tails</h2>
@@ -112,7 +115,7 @@
 
         <!-- Ice Cream -->
         <div class="dessert-card">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23ffb3ba' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23fff' font-size='20' font-family='Arial'%3EColorful Ice Cream%3C/text%3E%3C/svg%3E" alt="Ice Cream Tower">
+            <img src="dessert-images/ice-cream.jpg" alt="Ice Cream Tower">
             <div class="info-box">
                 <div class="country">🌎 From: All Over the World!</div>
                 <h2>Ice Cream</h2>
@@ -122,11 +125,31 @@
 
         <!-- Mochi -->
         <div class="dessert-card">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23ffcce5' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999' font-size='20' font-family='Arial'%3EMochi%3C/text%3E%3C/svg%3E" alt="Mochi">
+            <img src="dessert-images/mochi.jpg" alt="Mochi">
             <div class="info-box">
                 <div class="country">🇯🇵 From: Japan</div>
                 <h2>Mochi</h2>
                 <p>A soft, chewy Japanese rice cake made from sticky rice! It can be filled with sweet red bean paste or ice cream. Super squishy and fun to eat!</p>
+            </div>
+        </div>
+
+        <!-- Shaved Ice -->
+        <div class="dessert-card">
+            <img src="dessert-images/shaved-ice.jpg" alt="Rainbow Shaved Ice">
+            <div class="info-box">
+                <div class="country">🌺 From: Hawaii & Asia</div>
+                <h2>Shaved Ice</h2>
+                <p>Super fluffy shaved ice topped with colorful sweet syrups! Also called "kakigori" in Japan and "bingsu" in Korea. Perfect for hot summer days!</p>
+            </div>
+        </div>
+
+        <!-- Rau Cau -->
+        <div class="dessert-card">
+            <img src="dessert-images/rau-cau.jpg" alt="Rau Cau Vietnamese Jelly">
+            <div class="info-box">
+                <div class="country">🇻🇳 From: Vietnam</div>
+                <h2>Rau Câu (Vietnamese Jelly)</h2>
+                <p>A colorful layered jelly dessert made from seaweed! It's sweet, jiggly, and often flavored with pandan (a green tropical plant). Popular at Vietnamese parties!</p>
             </div>
         </div>
     </div>
