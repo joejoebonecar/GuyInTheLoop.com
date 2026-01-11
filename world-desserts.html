@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desserts Around the World</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #e67ee6 25%, #ffc3f9 50%, #a8c0ff 75%, #c3c8ff 100%);
+            min-height: 100vh;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: 48px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            margin-bottom: 40px;
+        }
+
+        .dessert-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .dessert-card {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .dessert-card:hover {
+            transform: scale(1.05);
+        }
+
+        .dessert-card img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .info-box {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .dessert-card:hover .info-box {
+            transform: translateY(0);
+        }
+
+        .info-box h2 {
+            margin: 0 0 10px 0;
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        .info-box p {
+            margin: 0;
+            color: #333;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .country {
+            font-weight: bold;
+            color: #e67ee6;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🍰 Desserts Around the World 🌍</h1>
+
+    <div class="dessert-container">
+        <!-- Dragon's Beard -->
+        <div class="dessert-card">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23f5f5f5' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999' font-size='20' font-family='Arial'%3EDragon's Beard%3C/text%3E%3C/svg%3E" alt="Dragon's Beard Candy">
+            <div class="info-box">
+                <div class="country">🇨🇳 From: China</div>
+                <h2>Dragon's Beard Candy</h2>
+                <p>An ancient Chinese candy made from thousands of super thin sugar threads! It looks like a dragon's fluffy beard and melts in your mouth. It's over 2,000 years old!</p>
+            </div>
+        </div>
+
+        <!-- Beaver Tails -->
+        <div class="dessert-card">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23d4a574' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23fff' font-size='20' font-family='Arial'%3EBeaver Tails%3C/text%3E%3C/svg%3E" alt="Beaver Tails">
+            <div class="info-box">
+                <div class="country">🇨🇦 From: Canada</div>
+                <h2>Beaver Tails</h2>
+                <p>A flat, fried pastry shaped like a beaver's tail! It's covered with cinnamon sugar and tastes amazing. Popular in Canada, especially in winter!</p>
+            </div>
+        </div>
+
+        <!-- Ice Cream -->
+        <div class="dessert-card">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23ffb3ba' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23fff' font-size='20' font-family='Arial'%3EColorful Ice Cream%3C/text%3E%3C/svg%3E" alt="Ice Cream Tower">
+            <div class="info-box">
+                <div class="country">🌎 From: All Over the World!</div>
+                <h2>Ice Cream</h2>
+                <p>Everyone's favorite frozen treat! Comes in hundreds of flavors and colors. The first ice cream was made over 2,000 years ago in China using snow and milk!</p>
+            </div>
+        </div>
+
+        <!-- Mochi -->
+        <div class="dessert-card">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%23ffcce5' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999' font-size='20' font-family='Arial'%3EMochi%3C/text%3E%3C/svg%3E" alt="Mochi">
+            <div class="info-box">
+                <div class="country">🇯🇵 From: Japan</div>
+                <h2>Mochi</h2>
+                <p>A soft, chewy Japanese rice cake made from sticky rice! It can be filled with sweet red bean paste or ice cream. Super squishy and fun to eat!</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
