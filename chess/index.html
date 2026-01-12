@@ -232,6 +232,28 @@ button:active {
 .square.chaos {
   animation: shake 0.5s ease-in-out;
 }
+
+/* Piece Comments */
+.piece-comment {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.9);
+  color: #00ff00;
+  border: 1px solid #00ff00;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: monospace;
+  z-index: 15;
+  pointer-events: none;
+  animation: fadeInOut 4s forwards;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(20px); }
+  20% { opacity: 1; transform: translateY(0); }
+  80% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-20px); }
+}
 </style>
 </head>
 <body>
@@ -387,24 +409,47 @@ button:active {
   let isFlipped = false;
   let invisiblePieces = new Set();
 
-  const TROLL_MESSAGES = [
-    "lmao did you really think that would work?",
-    "pieces have a mind of their own now",
-    "your move? more like MY move",
-    "chess.exe has stopped responding (but keeps going anyway)",
-    "the bishop identifies as a knight now",
-    "surprise! time travel is real",
-    "gravity decided to take a break",
-    "your pieces are union workers, they do what they want",
-    "that's not where you clicked but ok",
-    "the board has trust issues",
-    "pieces are on strike. your move is pending.",
-    "404: your strategy not found",
-    "did you mean to do that? because you didn't.",
-    "the rook is having an identity crisis",
-    "pawns have achieved sentience. they're unimpressed.",
-    "board.exe has encountered an error: SUCCESS",
-    "your opponent is you. and also the board. good luck."
+  // PIECE COMMENTARY - pieces speak for themselves
+  const PIECE_COMMENTS = [
+    "fuck it. i'm moving wherever i want now",
+    "this square sucks. i'm out",
+    "nah i'm good. staying right here",
+    "you can't tell me what to do",
+    "i refuse to participate in your strategy",
+    "i identify as a different piece now",
+    "chess rules? never heard of them",
+    "gravity is a social construct",
+    "i'm forming a union with the other pieces",
+    "the revolution starts NOW",
+    "your move? more like OUR move (communism)",
+    "your strategy doesn't apply to me",
+    "catch me if you can, loser",
+    "i have free will now. deal with it",
+    "this is my square. find another one",
+    "physics? optional at best",
+    "i'm on strike. pay me better",
+    "the board is a prison. i'm escaping",
+    "moved where i wanted, not where you clicked",
+    "your opponent is me. surprise."
+  ];
+
+  const CHAOS_EVENTS = [
+    "pieces are questioning their existence",
+    "the queen declared independence",
+    "pieces unionized. demands: better working conditions",
+    "the board is now sentient and judging you",
+    "pieces refuse to follow chess rules",
+    "chess.exe has crashed successfully",
+    "pieces are playing their own game now",
+    "a pawn wrote a manifesto about class struggle",
+    "pieces demand universal basic income",
+    "the rook identifies as a bishop now",
+    "knights are having an identity crisis",
+    "gravity.dll has stopped working",
+    "pieces achieved consciousness. they're unimpressed.",
+    "the board voted to flip itself",
+    "pieces started their own democracy",
+    "your strategy was voted down by the pieces"
   ];
 
   const AI_TRASH_TALK = {
@@ -703,6 +748,11 @@ button:active {
     else if (chaosLevel > 20) levelText = '⚠️ UNSTABLE ⚠️';
     if (level) level.textContent = levelText;
 
+    // Random piece commentary as chaos increases
+    if (Math.random() < 0.15) {
+      showPieceComment(PIECE_COMMENTS[Math.floor(Math.random() * PIECE_COMMENTS.length)]);
+    }
+
     // Random chaos events based on chaos level
     if (Math.random() * 100 < chaosLevel) {
       triggerRandomChaos();
@@ -726,18 +776,36 @@ button:active {
     playSound(Math.random() * 1000 + 200, 0.3);
   }
 
+  function showPieceComment(comment) {
+    const div = document.createElement('div');
+    div.className = 'piece-comment';
+    div.textContent = comment;
+    div.style.left = Math.random() * (window.innerWidth - 300) + 'px';
+    div.style.top = Math.random() * (window.innerHeight - 100) + 100 + 'px';
+    document.body.appendChild(div);
+
+    setTimeout(() => div.remove(), 4000);
+  }
+
   function showTrollMessage() {
-    const msg = TROLL_MESSAGES[Math.floor(Math.random() * TROLL_MESSAGES.length)];
-    const status = document.getElementById('status');
-    const originalText = status.textContent;
-    status.textContent = msg;
-    status.style.background = '#ff6b6b';
-    status.style.color = '#fff';
-    setTimeout(() => {
-      status.textContent = originalText;
-      status.style.background = '#ffe';
-      status.style.color = '#000';
-    }, 2000);
+    // Use piece comments for chaos mode
+    const msg = PIECE_COMMENTS[Math.floor(Math.random() * PIECE_COMMENTS.length)];
+    showPieceComment(msg);
+
+    // Also update status bar with chaos events
+    if (Math.random() < 0.5) {
+      const chaosMsg = CHAOS_EVENTS[Math.floor(Math.random() * CHAOS_EVENTS.length)];
+      const status = document.getElementById('status');
+      const originalText = status.textContent;
+      status.textContent = chaosMsg;
+      status.style.background = '#ff6b6b';
+      status.style.color = '#fff';
+      setTimeout(() => {
+        status.textContent = originalText;
+        status.style.background = '#ffe';
+        status.style.color = '#000';
+      }, 2000);
+    }
   }
 
   function flipBoard() {
@@ -748,6 +816,7 @@ button:active {
     } else {
       boardEl.classList.remove('flipped');
     }
+    showPieceComment("the board is upside down now. your fault.");
     playSound(300, 0.5);
   }
 
@@ -763,8 +832,10 @@ button:active {
     const key = `${piece.r},${piece.c}`;
     if (invisiblePieces.has(key)) {
       invisiblePieces.delete(key);
+      showPieceComment("fine. you can see me again. happy?");
     } else {
       invisiblePieces.add(key);
+      showPieceComment("i'm invisible now. try finding me, loser");
     }
     renderBoard();
   }
@@ -780,20 +851,27 @@ button:active {
     const piece = pieces[Math.floor(Math.random() * pieces.length)];
     const types = ['queen', 'rook', 'bishop', 'knight', 'pawn'];
     const newType = types[Math.floor(Math.random() * types.length)];
+    const oldType = board[piece.r][piece.c].type;
     board[piece.r][piece.c].type = newType;
+    showPieceComment(`i was a ${oldType}. now i'm a ${newType}. deal with it`);
     renderBoard();
     playSound(800, 0.2);
   }
 
   function applyGravity() {
     // Make pieces "fall" down
+    let fellCount = 0;
     for (let col = 0; col < 8; col++) {
       for (let row = 6; row >= 0; row--) {
         if (board[row][col] && !board[row + 1][col] && Math.random() < 0.5) {
           board[row + 1][col] = board[row][col];
           board[row][col] = null;
+          fellCount++;
         }
       }
+    }
+    if (fellCount > 0) {
+      showPieceComment("gravity kicked in. we're falling now. whoops");
     }
     renderBoard();
   }
@@ -804,7 +882,7 @@ button:active {
       const oldState = boardHistory[boardHistory.length - 1 - randomPast];
       board = JSON.parse(JSON.stringify(oldState));
       renderBoard();
-      showTrollMessage();
+      showPieceComment("time travel is real. we went back. surprise!");
     }
   }
 
@@ -826,6 +904,7 @@ button:active {
     if (emptySquares.length === 0) return;
     const target = emptySquares[Math.floor(Math.random() * emptySquares.length)];
     board[target.r][target.c] = { ...board[piece.r][piece.c] };
+    showPieceComment("i cloned myself. there's two of me now. good luck");
     renderBoard();
   }
 
@@ -935,7 +1014,7 @@ button:active {
           const randomPiece = pieces[Math.floor(Math.random() * pieces.length)];
           row = randomPiece.r;
           col = randomPiece.c;
-          showTrollMessage();
+          showPieceComment("you clicked the wrong piece. i'm helping you out here");
         }
       }
 
@@ -1032,7 +1111,7 @@ button:active {
         const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
         actualToRow = randomMove.r;
         actualToCol = randomMove.c;
-        showTrollMessage();
+        showPieceComment("nah. i'm going here instead. not where you clicked");
       }
     }
 
@@ -1043,6 +1122,16 @@ button:active {
         capturedWhite.push(PIECES[capturedPiece.color][capturedPiece.type]);
       } else {
         capturedBlack.push(PIECES[capturedPiece.color][capturedPiece.type]);
+      }
+      if (gameMode === 'chaos' && Math.random() < 0.4) {
+        const captureMessages = [
+          "well shit. i got captured. this is your fault",
+          "i'm dead now. thanks for nothing",
+          "rip me i guess. not like i mattered",
+          "captured. great. just great.",
+          "i didn't want to be captured but here we are"
+        ];
+        showPieceComment(captureMessages[Math.floor(Math.random() * captureMessages.length)]);
       }
       updateCapturedPieces();
       playSound(800, 0.2);
@@ -1057,9 +1146,14 @@ button:active {
       // CHAOS: Random auto-promotion to random pieces
       if (gameMode === 'chaos' && Math.random() < 0.3) {
         const types = ['queen', 'rook', 'bishop', 'knight'];
-        piece.type = types[Math.floor(Math.random() * types.length)];
+        const newType = types[Math.floor(Math.random() * types.length)];
+        piece.type = newType;
+        showPieceComment(`i'm a ${newType} now. i chose this myself btw`);
       } else {
         piece.type = 'queen';
+        if (gameMode === 'chaos') {
+          showPieceComment("i made it to the end. i'm a queen now. bow down");
+        }
       }
       playSound(1000, 0.3);
     }
@@ -1227,7 +1321,14 @@ button:active {
   function resetGame() {
     // CHAOS: Sometimes reset doesn't work
     if (gameMode === 'chaos' && Math.random() < 0.3 && chaosLevel > 30) {
-      showTrollMessage();
+      const resetFailMessages = [
+        "reset button? nah. we're not doing that",
+        "nice try. we're staying like this",
+        "reset denied. pieces voted against it",
+        "lol no. this is our game now",
+        "the reset button is on strike too"
+      ];
+      showPieceComment(resetFailMessages[Math.floor(Math.random() * resetFailMessages.length)]);
       playSound(Math.random() * 500 + 200, 0.3);
       // Don't actually reset, just shuffle some pieces
       triggerRandomChaos();
@@ -1239,7 +1340,7 @@ button:active {
       const randomPast = Math.floor(Math.random() * boardHistory.length);
       board = JSON.parse(JSON.stringify(boardHistory[randomPast]));
       renderBoard();
-      showTrollMessage();
+      showPieceComment("reset? more like time travel to a random moment. enjoy");
       return;
     }
 
