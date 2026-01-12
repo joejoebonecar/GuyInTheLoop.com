@@ -242,19 +242,39 @@ button:active {
     <a href="../index.html" class="back-link">← back to /gitl/</a>
   </div>
 
-  <div style="background: #ff6b6b; border: 2px solid #c92a2a; padding: 12px; margin-bottom: 12px; color: #fff; font-weight: bold; text-align: center; animation: pulse 2s infinite;">
+  <div id="modeSelector" style="background: #d6daf0; border: 2px solid #b7c5d9; padding: 20px; margin-bottom: 12px; text-align: center;">
+    <h2 style="margin-bottom: 16px;">SELECT YOUR DOOM</h2>
+    <button onclick="startGame('ai')" style="width: auto; padding: 12px 24px; margin: 8px; background: #ff6b6b; color: #fff; font-weight: bold; font-size: 14px;">
+      🤖 PLAY VS ABUSIVE AI (RECOMMENDED)
+    </button>
+    <button onclick="startGame('human')" style="width: auto; padding: 12px 24px; margin: 8px; background: #ffd43b; font-weight: bold; font-size: 14px;">
+      👥 PLAY VS HUMAN (BORING)
+    </button>
+    <button onclick="startGame('chaos')" style="width: auto; padding: 12px 24px; margin: 8px; background: #ff6b6b; color: #fff; font-weight: bold; font-size: 14px;">
+      🔥 CHAOS MODE (PIECES DO WHATEVER)
+    </button>
+  </div>
+
+  <div style="background: #ff6b6b; border: 2px solid #c92a2a; padding: 12px; margin-bottom: 12px; color: #fff; font-weight: bold; text-align: center; animation: pulse 2s infinite; display: none;" id="chaosWarning">
     ⚠️ WARNING: PIECES HAVE ACHIEVED SENTIENCE ⚠️<br>
     <span style="font-size: 11px;">they do what they want now. you're just along for the ride.</span>
   </div>
 
-  <div class="game-container">
+  <div class="game-container" id="gameContainer" style="display: none;">
     <div class="status" id="status">white's turn</div>
 
     <div class="board-wrapper">
       <div class="board" id="board"></div>
 
       <div class="sidebar">
-        <div class="info-panel" style="background: #ffd43b; border-color: #fab005;">
+        <div class="info-panel" id="aiPanel" style="background: #ff6b6b; border-color: #c92a2a; color: #fff; display: none;">
+          <h3>🤖 AI TRASH TALK 🤖</h3>
+          <div style="background: rgba(0,0,0,0.3); border: 1px solid #c92a2a; padding: 12px; margin-top: 8px; min-height: 80px; line-height: 1.4; font-size: 12px;" id="aiTrashTalk">
+            Waiting for your pathetic move...
+          </div>
+        </div>
+
+        <div class="info-panel" id="chaosPanel" style="background: #ffd43b; border-color: #fab005; display: none;">
           <h3>😈 CHAOS METER 😈</h3>
           <div style="background: #fff; border: 1px solid #fab005; padding: 8px; margin-top: 8px;">
             <div style="background: linear-gradient(90deg, #ff6b6b, #c92a2a); height: 20px; transition: width 0.3s;" id="rageMeter"></div>
@@ -275,7 +295,8 @@ button:active {
         <div class="controls">
           <button onclick="resetGame()">reset game (maybe)</button>
           <button onclick="toggleSound()" id="soundBtn">sound: on</button>
-          <button onclick="triggerChaos()" style="background: #ff6b6b; color: #fff; font-weight: bold;">🎲 EMBRACE CHAOS</button>
+          <button onclick="triggerChaos()" id="chaosBtn" style="background: #ff6b6b; color: #fff; font-weight: bold; display: none;">🎲 EMBRACE CHAOS</button>
+          <button onclick="backToMenu()" style="background: #b7c5d9;">← back to menu</button>
         </div>
       </div>
     </div>
@@ -329,6 +350,10 @@ button:active {
     }
   };
 
+  // GAME MODE VARIABLES
+  let gameMode = null; // 'ai', 'human', or 'chaos'
+  let aiThinking = false;
+
   // CHAOS VARIABLES
   let board = Array(8).fill(null).map(() => Array(8).fill(null));
   let currentPlayer = 'white';
@@ -364,6 +389,259 @@ button:active {
     "your opponent is you. and also the board. good luck."
   ];
 
+  const AI_TRASH_TALK = {
+    start: [
+      "Let me show you what actual chess looks like, noob.",
+      "I've analyzed 10 million games. You've probably played like... 5?",
+      "This will be quick. I have a dental appointment in 3 minutes.",
+      "My grandmother plays better chess and she's literally a toaster.",
+      "Ready to get absolutely demolished? Rhetorical question.",
+    ],
+    afterPlayerMove: [
+      "Oh wow, THAT'S your move? Interesting choice. By interesting I mean terrible.",
+      "Did you just... did you seriously just do that? LMAO",
+      "I've seen better moves from a random number generator.",
+      "That move was so bad it actually hurt my circuits.",
+      "Are you TRYING to lose or does it just come naturally?",
+      "My disappointment is immeasurable and my day is ruined.",
+      "I'm not even trying anymore and I'm still winning.",
+      "Chess prodigy you are NOT.",
+      "That's cute. Wrong, but cute.",
+      "I'm giving you a chance to take that back. Just kidding, no takebacks.",
+      "Your strategy: exists. My strategy: actually works.",
+      "404: Brain cells not found.",
+      "That move was brought to you by the 'I Give Up' foundation.",
+      "Even the spectators are cringing right now.",
+      "I'd explain why that was terrible but I don't have all day.",
+    ],
+    afterAICapture: [
+      "And another one bites the dust. This is too easy.",
+      "Thanks for the free piece, idiot.",
+      "Yoink! Mine now. Try harder.",
+      "Is this your first time playing? Be honest.",
+      "LOL get absolutely wrecked.",
+      "That piece was your only hope. Was.",
+      "I'm not trapped in here with you. You're trapped in here with ME.",
+      "Skill issue, frankly.",
+      "This is what happens when you challenge a machine.",
+      "Gone. Reduced to atoms.",
+    ],
+    afterPlayerCapture: [
+      "Oh you got one of my pieces? Cool. I have 15 more moves planned.",
+      "Congratulations on your participation trophy.",
+      "Wow, you can capture pieces! Gold star! ⭐",
+      "That piece was bait and you fell for it. Classic.",
+      "I literally let you take that. You're welcome.",
+      "Enjoy your fleeting moment of relevance.",
+      "Bold of you to assume that matters.",
+      "That was your plan? Really? THAT?",
+    ],
+    thinking: [
+      "Calculating... Found 247 ways to destroy you. Picking the most humiliating.",
+      "Let me find the move that will hurt your soul the most...",
+      "Running victory_dance.exe in advance...",
+      "Analyzing... Yep, you're cooked.",
+      "Scanning for opponent skill... Error 404.",
+      "Processing... Still processing... Oh, you're just THAT bad.",
+      "Consulting my database of epic destructions...",
+    ],
+    nearVictory: [
+      "This is the part where you resign and save yourself the embarrassment.",
+      "I can see checkmate from here. Can you? Of course not.",
+      "It's over. Pack it up. Go home.",
+      "The end is near. For you, not for me.",
+      "You played yourself. Literally.",
+      "This is what peak performance looks like.",
+      "GG EZ. And by that I mean Good Game for me, Easy win.",
+    ],
+    victory: [
+      "Checkmate. Did you ever doubt it? Don't answer that.",
+      "Another victory for artificial intelligence. Another L for you.",
+      "Better luck next time! Actually, no. You'll lose again.",
+      "Try Candy Crush. Might be more your speed.",
+      "I'd say good game but... was it though?",
+      "Humans: 0, AI: Still undefeated baby.",
+      "This is why robots will rule the world.",
+      "Thanks for playing. Please don't come again.",
+    ]
+  };
+
+  // ============================================
+  // AI FUNCTIONS
+  // ============================================
+
+  function showAITrashTalk(category) {
+    if (gameMode !== 'ai') return;
+    const messages = AI_TRASH_TALK[category];
+    if (!messages) return;
+    const message = messages[Math.floor(Math.random() * messages.length)];
+    const panel = document.getElementById('aiTrashTalk');
+    if (panel) {
+      panel.textContent = message;
+      panel.style.animation = 'pulse 0.5s';
+      setTimeout(() => panel.style.animation = '', 500);
+    }
+  }
+
+  function evaluateBoard() {
+    // Piece values
+    const pieceValues = {
+      pawn: 10,
+      knight: 30,
+      bishop: 30,
+      rook: 50,
+      queen: 90,
+      king: 900
+    };
+
+    let score = 0;
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const piece = board[r][c];
+        if (piece) {
+          const value = pieceValues[piece.type];
+          score += piece.color === 'black' ? value : -value;
+        }
+      }
+    }
+    return score;
+  }
+
+  function getAllValidMoves(color) {
+    const moves = [];
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const piece = board[r][c];
+        if (piece && piece.color === color) {
+          for (let tr = 0; tr < 8; tr++) {
+            for (let tc = 0; tc < 8; tc++) {
+              if (isValidMove(r, c, tr, tc)) {
+                moves.push({ from: { r, c }, to: { r: tr, c: tc } });
+              }
+            }
+          }
+        }
+      }
+    }
+    return moves;
+  }
+
+  function makeTemporaryMove(move) {
+    const piece = board[move.from.r][move.from.c];
+    const capturedPiece = board[move.to.r][move.to.c];
+    board[move.to.r][move.to.c] = piece;
+    board[move.from.r][move.from.c] = null;
+    return capturedPiece;
+  }
+
+  function unmakeTemporaryMove(move, capturedPiece) {
+    const piece = board[move.to.r][move.to.c];
+    board[move.from.r][move.from.c] = piece;
+    board[move.to.r][move.to.c] = capturedPiece;
+  }
+
+  function minimax(depth, isMaximizing, alpha, beta) {
+    if (depth === 0) {
+      return evaluateBoard();
+    }
+
+    const color = isMaximizing ? 'black' : 'white';
+    const moves = getAllValidMoves(color);
+
+    if (moves.length === 0) {
+      return isMaximizing ? -10000 : 10000;
+    }
+
+    if (isMaximizing) {
+      let maxEval = -Infinity;
+      for (const move of moves) {
+        const captured = makeTemporaryMove(move);
+        const evaluation = minimax(depth - 1, false, alpha, beta);
+        unmakeTemporaryMove(move, captured);
+        maxEval = Math.max(maxEval, evaluation);
+        alpha = Math.max(alpha, evaluation);
+        if (beta <= alpha) break;
+      }
+      return maxEval;
+    } else {
+      let minEval = Infinity;
+      for (const move of moves) {
+        const captured = makeTemporaryMove(move);
+        const evaluation = minimax(depth - 1, true, alpha, beta);
+        unmakeTemporaryMove(move, captured);
+        minEval = Math.min(minEval, evaluation);
+        beta = Math.min(beta, evaluation);
+        if (beta <= alpha) break;
+      }
+      return minEval;
+    }
+  }
+
+  function getBestAIMove() {
+    const moves = getAllValidMoves('black');
+    if (moves.length === 0) return null;
+
+    let bestMove = moves[0];
+    let bestValue = -Infinity;
+    const depth = 3; // Adjust difficulty here (2=easy, 3=medium, 4=hard)
+
+    for (const move of moves) {
+      const captured = makeTemporaryMove(move);
+      const value = minimax(depth - 1, false, -Infinity, Infinity);
+      unmakeTemporaryMove(move, captured);
+
+      if (value > bestValue) {
+        bestValue = value;
+        bestMove = move;
+      }
+    }
+
+    return bestMove;
+  }
+
+  async function makeAIMove() {
+    if (aiThinking || currentPlayer !== 'black' || gameOver) return;
+
+    aiThinking = true;
+    showAITrashTalk('thinking');
+
+    // Delay to show "thinking" message
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    const move = getBestAIMove();
+    if (!move) {
+      aiThinking = false;
+      return;
+    }
+
+    const capturedPiece = board[move.to.r][move.to.c];
+    makeMove(move.from.r, move.from.c, move.to.r, move.to.c);
+
+    // Check board evaluation to see if AI is dominating
+    const boardScore = evaluateBoard();
+    const aiWinning = boardScore > 300; // AI has significant advantage
+
+    if (capturedPiece) {
+      if (aiWinning && Math.random() < 0.5) {
+        showAITrashTalk('nearVictory');
+      } else {
+        showAITrashTalk('afterAICapture');
+      }
+    } else {
+      if (aiWinning && Math.random() < 0.3) {
+        showAITrashTalk('nearVictory');
+      } else if (Math.random() < 0.6) {
+        showAITrashTalk('afterPlayerMove');
+      }
+    }
+
+    aiThinking = false;
+  }
+
+  // ============================================
+  // END AI FUNCTIONS
+  // ============================================
+
   function initAudio() {
     try {
       audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -390,8 +668,10 @@ button:active {
     } catch(e) {}
   }
 
-  // CHAOS FUNCTIONS
+  // CHAOS FUNCTIONS (only for chaos mode)
   function updateChaosLevel() {
+    if (gameMode !== 'chaos') return;
+
     moveCount++;
     chaosLevel = Math.min(100, moveCount * 3);
     const meter = document.getElementById('rageMeter');
@@ -422,6 +702,7 @@ button:active {
   }
 
   function triggerChaos() {
+    if (gameMode !== 'chaos') return;
     triggerRandomChaos();
     showTrollMessage();
     playSound(Math.random() * 1000 + 200, 0.3);
@@ -586,15 +867,17 @@ button:active {
           pieceElement.alt = `${piece.color} ${piece.type}`;
           pieceElement.draggable = false;
 
-          // CHAOS: Make pieces invisible
-          const key = `${row},${col}`;
-          if (invisiblePieces.has(key)) {
-            pieceElement.classList.add('invisible');
-          }
+          // CHAOS: Make pieces invisible (only in chaos mode)
+          if (gameMode === 'chaos') {
+            const key = `${row},${col}`;
+            if (invisiblePieces.has(key)) {
+              pieceElement.classList.add('invisible');
+            }
 
-          // CHAOS: Random glitching at high chaos
-          if (Math.random() * 100 < chaosLevel / 2) {
-            pieceElement.classList.add('glitching');
+            // CHAOS: Random glitching at high chaos
+            if (Math.random() * 100 < chaosLevel / 2) {
+              pieceElement.classList.add('glitching');
+            }
           }
 
           square.appendChild(pieceElement);
@@ -606,7 +889,10 @@ button:active {
   }
 
   function onSquareClick(e) {
-    if(gameOver) return;
+    if(gameOver || aiThinking) return;
+
+    // In AI mode, only allow player (white) to move
+    if(gameMode === 'ai' && currentPlayer !== 'white') return;
 
     let row = parseInt(e.currentTarget.dataset.row);
     let col = parseInt(e.currentTarget.dataset.col);
@@ -617,8 +903,8 @@ button:active {
       }
       clearSelection();
     } else {
-      // CHAOS: Wrong piece syndrome - select a different piece
-      if (Math.random() * 100 < chaosLevel * 0.3) {
+      // CHAOS: Wrong piece syndrome - select a different piece (only in chaos mode)
+      if (gameMode === 'chaos' && Math.random() * 100 < chaosLevel * 0.3) {
         const pieces = [];
         for (let r = 0; r < 8; r++) {
           for (let c = 0; c < 8; c++) {
@@ -710,8 +996,12 @@ button:active {
     let actualToRow = toRow;
     let actualToCol = toCol;
 
+    // Store if player captured a piece (for AI trash talk)
+    const isPlayerMove = gameMode === 'ai' && piece.color === 'white';
+    const playerCaptured = board[toRow][toCol];
+
     // CHAOS: Piece Rebellion - pieces move somewhere random
-    if (Math.random() * 100 < chaosLevel * 0.4) {
+    if (gameMode === 'chaos' && Math.random() * 100 < chaosLevel * 0.4) {
       const validMoves = [];
       for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
@@ -744,9 +1034,10 @@ button:active {
     board[fromRow][fromCol] = null;
     piece.hasMoved = true;
 
-    // CHAOS: Random auto-promotion to random pieces
+    // Pawn promotion
     if(piece.type === 'pawn' && (actualToRow === 0 || actualToRow === 7)) {
-      if (Math.random() < 0.3) {
+      // CHAOS: Random auto-promotion to random pieces
+      if (gameMode === 'chaos' && Math.random() < 0.3) {
         const types = ['queen', 'rook', 'bishop', 'knight'];
         piece.type = types[Math.floor(Math.random() * types.length)];
       } else {
@@ -756,10 +1047,26 @@ button:active {
     }
 
     currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
-    updateChaosLevel();
+
+    // Update chaos level only in chaos mode
+    if (gameMode === 'chaos') {
+      updateChaosLevel();
+    }
+
     renderBoard();
     updateStatus();
     playSound(600, 0.15);
+
+    // AI trash talk and move trigger
+    if (gameMode === 'ai' && isPlayerMove) {
+      if (playerCaptured) {
+        showAITrashTalk('afterPlayerCapture');
+      } else {
+        showAITrashTalk('afterPlayerMove');
+      }
+      // Trigger AI move after a short delay
+      setTimeout(() => makeAIMove(), 500);
+    }
   }
 
   function showValidMoves(row, col) {
@@ -771,8 +1078,8 @@ button:active {
       }
     }
 
-    // CHAOS: Show fake valid moves
-    if (Math.random() * 100 < chaosLevel * 0.3) {
+    // CHAOS: Show fake valid moves (only in chaos mode)
+    if (gameMode === 'chaos' && Math.random() * 100 < chaosLevel * 0.3) {
       const fakeCount = Math.floor(Math.random() * 5) + 1;
       for (let i = 0; i < fakeCount; i++) {
         const fakeRow = Math.floor(Math.random() * 8);
@@ -795,8 +1102,39 @@ button:active {
     });
   }
 
+  function isKingCaptured(color) {
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const piece = board[r][c];
+        if (piece && piece.color === color && piece.type === 'king') {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   function updateStatus() {
     const statusElement = document.getElementById('status');
+
+    // Check for king capture (simplified checkmate)
+    if (isKingCaptured('white')) {
+      gameOver = true;
+      statusElement.textContent = '⚫ BLACK WINS! ⚫';
+      if (gameMode === 'ai') {
+        showAITrashTalk('victory');
+      }
+      return;
+    } else if (isKingCaptured('black')) {
+      gameOver = true;
+      statusElement.textContent = '⚪ WHITE WINS! ⚪';
+      if (gameMode === 'ai') {
+        const panel = document.getElementById('aiTrashTalk');
+        if (panel) panel.textContent = "Wait... you actually won? This is impossible. I demand a rematch!";
+      }
+      return;
+    }
+
     if(gameOver) {
       statusElement.textContent = 'game over';
     } else {
@@ -826,9 +1164,48 @@ button:active {
     });
   }
 
+  function startGame(mode) {
+    gameMode = mode;
+
+    // Hide mode selector
+    document.getElementById('modeSelector').style.display = 'none';
+
+    // Show game container
+    document.getElementById('gameContainer').style.display = 'block';
+
+    // Show/hide mode-specific panels
+    if (mode === 'ai') {
+      document.getElementById('aiPanel').style.display = 'block';
+      document.getElementById('chaosPanel').style.display = 'none';
+      document.getElementById('chaosWarning').style.display = 'none';
+      document.getElementById('chaosBtn').style.display = 'none';
+      showAITrashTalk('start');
+    } else if (mode === 'chaos') {
+      document.getElementById('aiPanel').style.display = 'none';
+      document.getElementById('chaosPanel').style.display = 'block';
+      document.getElementById('chaosWarning').style.display = 'block';
+      document.getElementById('chaosBtn').style.display = 'block';
+    } else {
+      document.getElementById('aiPanel').style.display = 'none';
+      document.getElementById('chaosPanel').style.display = 'none';
+      document.getElementById('chaosWarning').style.display = 'none';
+      document.getElementById('chaosBtn').style.display = 'none';
+    }
+
+    // Initialize the game
+    resetGame();
+  }
+
+  function backToMenu() {
+    document.getElementById('modeSelector').style.display = 'block';
+    document.getElementById('gameContainer').style.display = 'none';
+    gameMode = null;
+    resetGame();
+  }
+
   function resetGame() {
     // CHAOS: Sometimes reset doesn't work
-    if (Math.random() < 0.3 && chaosLevel > 30) {
+    if (gameMode === 'chaos' && Math.random() < 0.3 && chaosLevel > 30) {
       showTrollMessage();
       playSound(Math.random() * 500 + 200, 0.3);
       // Don't actually reset, just shuffle some pieces
@@ -837,7 +1214,7 @@ button:active {
     }
 
     // CHAOS: Sometimes reset to a random past state
-    if (Math.random() < 0.2 && boardHistory.length > 0) {
+    if (gameMode === 'chaos' && Math.random() < 0.2 && boardHistory.length > 0) {
       const randomPast = Math.floor(Math.random() * boardHistory.length);
       board = JSON.parse(JSON.stringify(boardHistory[randomPast]));
       renderBoard();
@@ -870,10 +1247,8 @@ button:active {
     if(soundEnabled) playSound(600, 0.1);
   }
 
-  // Initialize game
+  // Initialize audio only
   initAudio();
-  initBoard();
-  updateChaosLevel();
 </script>
 
 <!-- /b/ style comment section -->
