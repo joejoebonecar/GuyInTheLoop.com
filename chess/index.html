@@ -190,14 +190,61 @@ button:active {
     flex-direction: column;
   }
 }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+.board.flipped {
+  transform: rotate(180deg);
+  transition: transform 0.5s ease-in-out;
+}
+
+.piece.invisible {
+  opacity: 0.1;
+}
+
+.piece.glitching {
+  animation: glitch 0.3s infinite;
+}
+
+.square.chaos {
+  animation: shake 0.5s ease-in-out;
+}
 </style>
 </head>
 <body>
 
 <div class="container">
   <div class="header">
-    <div class="title">chess.exe</div>
+    <div class="title">🔥 CHAOS CHESS 🔥</div>
     <a href="../index.html" class="back-link">← back to /gitl/</a>
+  </div>
+
+  <div style="background: #ff6b6b; border: 2px solid #c92a2a; padding: 12px; margin-bottom: 12px; color: #fff; font-weight: bold; text-align: center; animation: pulse 2s infinite;">
+    ⚠️ WARNING: PIECES HAVE ACHIEVED SENTIENCE ⚠️<br>
+    <span style="font-size: 11px;">they do what they want now. you're just along for the ride.</span>
   </div>
 
   <div class="game-container">
@@ -207,6 +254,14 @@ button:active {
       <div class="board" id="board"></div>
 
       <div class="sidebar">
+        <div class="info-panel" style="background: #ffd43b; border-color: #fab005;">
+          <h3>😈 CHAOS METER 😈</h3>
+          <div style="background: #fff; border: 1px solid #fab005; padding: 8px; margin-top: 8px;">
+            <div style="background: linear-gradient(90deg, #ff6b6b, #c92a2a); height: 20px; transition: width 0.3s;" id="rageMeter"></div>
+            <div style="text-align: center; margin-top: 4px; font-weight: bold;" id="rageLevel">STABLE</div>
+          </div>
+        </div>
+
         <div class="info-panel">
           <h3>captured white</h3>
           <div class="captured" id="capturedWhite"></div>
@@ -218,21 +273,28 @@ button:active {
         </div>
 
         <div class="controls">
-          <button onclick="resetGame()">reset game</button>
+          <button onclick="resetGame()">reset game (maybe)</button>
           <button onclick="toggleSound()" id="soundBtn">sound: on</button>
+          <button onclick="triggerChaos()" style="background: #ff6b6b; color: #fff; font-weight: bold;">🎲 EMBRACE CHAOS</button>
         </div>
       </div>
     </div>
 
     <div class="rules">
-      <h4>how to play:</h4>
-      - click piece to select<br>
-      - click highlighted square to <s>move</s> (to see my failure)<br>
-      - RageQuit.chess Pieces are too Chad to listen. And WTF is that sound even?<br>
-      - cuz don't fucking remember how to even do it who am I <a href="https://www.chess.com/players/magnus-carlsen" style="color: #34345c;" target="_blank">the super chess master guy</a><br>
-      - no castling (not implemented)<br>
-      - pawns auto-promote to queen<br><br>
-      <strong>note:</strong> two player only. AI coming eventually.
+      <h4>⚠️ CHAOS RULES ⚠️</h4>
+      - pieces have free will now (they might ignore you)<br>
+      - board may rotate at any moment<br>
+      - pieces can become invisible, change type, or teleport<br>
+      - "valid moves" are more like suggestions<br>
+      - clicking one piece might move a different one<br>
+      - the chaos meter increases with each move<br>
+      - gravity is optional<br>
+      - time is a flat circle<br>
+      - reset button may or may not work<br>
+      - your sanity is not guaranteed<br><br>
+      <strong>note:</strong> if you're not laughing or crying, the chaos level isn't high enough.<br>
+      <strong>pro tip:</strong> lower your expectations. then lower them again.<br>
+      <strong>warning:</strong> this is what happens when chess pieces unionize.
     </div>
   </div>
 </div>
@@ -267,6 +329,7 @@ button:active {
     }
   };
 
+  // CHAOS VARIABLES
   let board = Array(8).fill(null).map(() => Array(8).fill(null));
   let currentPlayer = 'white';
   let selectedSquare = null;
@@ -275,6 +338,31 @@ button:active {
   let capturedWhite = [];
   let capturedBlack = [];
   let audioContext;
+  let chaosLevel = 0;
+  let moveCount = 0;
+  let boardHistory = [];
+  let isFlipped = false;
+  let invisiblePieces = new Set();
+
+  const TROLL_MESSAGES = [
+    "lmao did you really think that would work?",
+    "pieces have a mind of their own now",
+    "your move? more like MY move",
+    "chess.exe has stopped responding (but keeps going anyway)",
+    "the bishop identifies as a knight now",
+    "surprise! time travel is real",
+    "gravity decided to take a break",
+    "your pieces are union workers, they do what they want",
+    "that's not where you clicked but ok",
+    "the board has trust issues",
+    "pieces are on strike. your move is pending.",
+    "404: your strategy not found",
+    "did you mean to do that? because you didn't.",
+    "the rook is having an identity crisis",
+    "pawns have achieved sentience. they're unimpressed.",
+    "board.exe has encountered an error: SUCCESS",
+    "your opponent is you. and also the board. good luck."
+  ];
 
   function initAudio() {
     try {
@@ -287,8 +375,12 @@ button:active {
     try {
       const osc = audioContext.createOscillator();
       const gain = audioContext.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+      // CHAOS: Random waveforms that get worse
+      const types = ['sine', 'square', 'sawtooth', 'triangle'];
+      osc.type = types[Math.floor(chaosLevel / 25) % types.length];
+      // CHAOS: Increasingly detuned frequencies
+      const chaosFreq = freq + (Math.random() - 0.5) * chaosLevel * 10;
+      osc.frequency.setValueAtTime(chaosFreq, audioContext.currentTime);
       gain.gain.setValueAtTime(0.3, audioContext.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
       osc.connect(gain);
@@ -296,6 +388,151 @@ button:active {
       osc.start();
       osc.stop(audioContext.currentTime + duration);
     } catch(e) {}
+  }
+
+  // CHAOS FUNCTIONS
+  function updateChaosLevel() {
+    moveCount++;
+    chaosLevel = Math.min(100, moveCount * 3);
+    const meter = document.getElementById('rageMeter');
+    const level = document.getElementById('rageLevel');
+    if (meter) meter.style.width = chaosLevel + '%';
+
+    let levelText = 'STABLE';
+    if (chaosLevel > 80) levelText = '🔥 MAXIMUM CHAOS 🔥';
+    else if (chaosLevel > 60) levelText = '💀 UNHINGED 💀';
+    else if (chaosLevel > 40) levelText = '😈 CHAOTIC 😈';
+    else if (chaosLevel > 20) levelText = '⚠️ UNSTABLE ⚠️';
+    if (level) level.textContent = levelText;
+
+    // Random chaos events based on chaos level
+    if (Math.random() * 100 < chaosLevel) {
+      triggerRandomChaos();
+    }
+  }
+
+  function triggerRandomChaos() {
+    const roll = Math.random();
+    if (roll < 0.15) flipBoard();
+    else if (roll < 0.3) makeRandomInvisible();
+    else if (roll < 0.45) mutatePiece();
+    else if (roll < 0.6) applyGravity();
+    else if (roll < 0.75) timeTravel();
+    else if (roll < 0.9) duplicatePiece();
+  }
+
+  function triggerChaos() {
+    triggerRandomChaos();
+    showTrollMessage();
+    playSound(Math.random() * 1000 + 200, 0.3);
+  }
+
+  function showTrollMessage() {
+    const msg = TROLL_MESSAGES[Math.floor(Math.random() * TROLL_MESSAGES.length)];
+    const status = document.getElementById('status');
+    const originalText = status.textContent;
+    status.textContent = msg;
+    status.style.background = '#ff6b6b';
+    status.style.color = '#fff';
+    setTimeout(() => {
+      status.textContent = originalText;
+      status.style.background = '#ffe';
+      status.style.color = '#000';
+    }, 2000);
+  }
+
+  function flipBoard() {
+    const boardEl = document.getElementById('board');
+    isFlipped = !isFlipped;
+    if (isFlipped) {
+      boardEl.classList.add('flipped');
+    } else {
+      boardEl.classList.remove('flipped');
+    }
+    playSound(300, 0.5);
+  }
+
+  function makeRandomInvisible() {
+    const pieces = [];
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        if (board[r][c]) pieces.push({ r, c });
+      }
+    }
+    if (pieces.length === 0) return;
+    const piece = pieces[Math.floor(Math.random() * pieces.length)];
+    const key = `${piece.r},${piece.c}`;
+    if (invisiblePieces.has(key)) {
+      invisiblePieces.delete(key);
+    } else {
+      invisiblePieces.add(key);
+    }
+    renderBoard();
+  }
+
+  function mutatePiece() {
+    const pieces = [];
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        if (board[r][c] && board[r][c].type !== 'king') pieces.push({ r, c });
+      }
+    }
+    if (pieces.length === 0) return;
+    const piece = pieces[Math.floor(Math.random() * pieces.length)];
+    const types = ['queen', 'rook', 'bishop', 'knight', 'pawn'];
+    const newType = types[Math.floor(Math.random() * types.length)];
+    board[piece.r][piece.c].type = newType;
+    renderBoard();
+    playSound(800, 0.2);
+  }
+
+  function applyGravity() {
+    // Make pieces "fall" down
+    for (let col = 0; col < 8; col++) {
+      for (let row = 6; row >= 0; row--) {
+        if (board[row][col] && !board[row + 1][col] && Math.random() < 0.5) {
+          board[row + 1][col] = board[row][col];
+          board[row][col] = null;
+        }
+      }
+    }
+    renderBoard();
+  }
+
+  function timeTravel() {
+    if (boardHistory.length > 2) {
+      const randomPast = Math.floor(Math.random() * Math.min(5, boardHistory.length));
+      const oldState = boardHistory[boardHistory.length - 1 - randomPast];
+      board = JSON.parse(JSON.stringify(oldState));
+      renderBoard();
+      showTrollMessage();
+    }
+  }
+
+  function duplicatePiece() {
+    const pieces = [];
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        if (board[r][c]) pieces.push({ r, c });
+      }
+    }
+    if (pieces.length === 0) return;
+    const piece = pieces[Math.floor(Math.random() * pieces.length)];
+    const emptySquares = [];
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        if (!board[r][c]) emptySquares.push({ r, c });
+      }
+    }
+    if (emptySquares.length === 0) return;
+    const target = emptySquares[Math.floor(Math.random() * emptySquares.length)];
+    board[target.r][target.c] = { ...board[piece.r][piece.c] };
+    renderBoard();
+  }
+
+  function saveHistory() {
+    boardHistory.push(JSON.parse(JSON.stringify(board)));
+    if (boardHistory.length > 10) boardHistory.shift();
   }
 
   function initBoard() {
@@ -349,6 +586,18 @@ button:active {
           pieceElement.src = PIECES[piece.color][pieceName];
           pieceElement.alt = `${piece.color} ${pieceName}`;
           pieceElement.draggable = false;
+
+          // CHAOS: Make pieces invisible
+          const key = `${row},${col}`;
+          if (invisiblePieces.has(key)) {
+            pieceElement.classList.add('invisible');
+          }
+
+          // CHAOS: Random glitching at high chaos
+          if (Math.random() * 100 < chaosLevel / 2) {
+            pieceElement.classList.add('glitching');
+          }
+
           square.appendChild(pieceElement);
         }
 
@@ -360,8 +609,8 @@ button:active {
   function onSquareClick(e) {
     if(gameOver) return;
 
-    const row = parseInt(e.currentTarget.dataset.row);
-    const col = parseInt(e.currentTarget.dataset.col);
+    let row = parseInt(e.currentTarget.dataset.row);
+    let col = parseInt(e.currentTarget.dataset.col);
 
     if(selectedSquare) {
       if(isValidMove(selectedSquare.row, selectedSquare.col, row, col)) {
@@ -369,6 +618,24 @@ button:active {
       }
       clearSelection();
     } else {
+      // CHAOS: Wrong piece syndrome - select a different piece
+      if (Math.random() * 100 < chaosLevel * 0.3) {
+        const pieces = [];
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            if (board[r][c] && board[r][c].color === currentPlayer) {
+              pieces.push({ r, c });
+            }
+          }
+        }
+        if (pieces.length > 0) {
+          const randomPiece = pieces[Math.floor(Math.random() * pieces.length)];
+          row = randomPiece.r;
+          col = randomPiece.c;
+          showTrollMessage();
+        }
+      }
+
       const piece = board[row][col];
       if(piece && piece.color === currentPlayer) {
         selectedSquare = { row, col };
@@ -438,8 +705,31 @@ button:active {
   }
 
   function makeMove(fromRow, fromCol, toRow, toCol) {
+    saveHistory();
+
     const piece = board[fromRow][fromCol];
-    const capturedPiece = board[toRow][toCol];
+    let actualToRow = toRow;
+    let actualToCol = toCol;
+
+    // CHAOS: Piece Rebellion - pieces move somewhere random
+    if (Math.random() * 100 < chaosLevel * 0.4) {
+      const validMoves = [];
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          if ((r !== fromRow || c !== fromCol) && !board[r][c]) {
+            validMoves.push({ r, c });
+          }
+        }
+      }
+      if (validMoves.length > 0) {
+        const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+        actualToRow = randomMove.r;
+        actualToCol = randomMove.c;
+        showTrollMessage();
+      }
+    }
+
+    const capturedPiece = board[actualToRow][actualToCol];
 
     if(capturedPiece) {
       const capturedPieceName = PIECE_NAMES[capturedPiece.type];
@@ -452,16 +742,23 @@ button:active {
       playSound(800, 0.2);
     }
 
-    board[toRow][toCol] = piece;
+    board[actualToRow][actualToCol] = piece;
     board[fromRow][fromCol] = null;
     piece.hasMoved = true;
 
-    if(piece.type === 'pawn' && (toRow === 0 || toRow === 7)) {
-      piece.type = 'queen';
+    // CHAOS: Random auto-promotion to random pieces
+    if(piece.type === 'pawn' && (actualToRow === 0 || actualToRow === 7)) {
+      if (Math.random() < 0.3) {
+        const types = ['queen', 'rook', 'bishop', 'knight'];
+        piece.type = types[Math.floor(Math.random() * types.length)];
+      } else {
+        piece.type = 'queen';
+      }
       playSound(1000, 0.3);
     }
 
     currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
+    updateChaosLevel();
     renderBoard();
     updateStatus();
     playSound(600, 0.15);
@@ -473,6 +770,16 @@ button:active {
         if(isValidMove(row, col, r, c)) {
           highlightSquare(r, c, 'valid-move');
         }
+      }
+    }
+
+    // CHAOS: Show fake valid moves
+    if (Math.random() * 100 < chaosLevel * 0.3) {
+      const fakeCount = Math.floor(Math.random() * 5) + 1;
+      for (let i = 0; i < fakeCount; i++) {
+        const fakeRow = Math.floor(Math.random() * 8);
+        const fakeCol = Math.floor(Math.random() * 8);
+        highlightSquare(fakeRow, fakeCol, 'valid-move');
       }
     }
   }
@@ -522,14 +829,39 @@ button:active {
   }
 
   function resetGame() {
+    // CHAOS: Sometimes reset doesn't work
+    if (Math.random() < 0.3 && chaosLevel > 30) {
+      showTrollMessage();
+      playSound(Math.random() * 500 + 200, 0.3);
+      // Don't actually reset, just shuffle some pieces
+      triggerRandomChaos();
+      return;
+    }
+
+    // CHAOS: Sometimes reset to a random past state
+    if (Math.random() < 0.2 && boardHistory.length > 0) {
+      const randomPast = Math.floor(Math.random() * boardHistory.length);
+      board = JSON.parse(JSON.stringify(boardHistory[randomPast]));
+      renderBoard();
+      showTrollMessage();
+      return;
+    }
+
     board = Array(8).fill(null).map(() => Array(8).fill(null));
     currentPlayer = 'white';
     selectedSquare = null;
     gameOver = false;
     capturedWhite = [];
     capturedBlack = [];
+    chaosLevel = 0;
+    moveCount = 0;
+    boardHistory = [];
+    invisiblePieces.clear();
+    isFlipped = false;
+    document.getElementById('board').classList.remove('flipped');
     initBoard();
     updateCapturedPieces();
+    updateChaosLevel();
     playSound(500, 0.2);
   }
 
@@ -543,27 +875,28 @@ button:active {
   // Initialize game
   initAudio();
   initBoard();
+  updateChaosLevel();
 </script>
 
 <!-- /b/ style comment section -->
 <div class="container" style="margin-top: 20px;">
   <div style="background: #d6daf0; border: 1px solid #b7c5d9; padding: 8px 12px; margin-bottom: 12px; font-weight: bold;">
-    Comments (8)
+    Comments (12)
   </div>
 
   <!-- Comment 1 -->
   <div style="background: #f0e0d6; border: 1px solid #d9bfb7; padding: 8px; margin-bottom: 8px;">
     <div style="font-size: 11px; color: #800000;">
       <span style="color: #117743; font-weight: bold;">Anonymous</span>
-      <span style="color: #800000;">01/06/26(Mon)14:45:12</span>
-      <span style="color: #800000;">No.690001</span>
+      <span style="color: #800000;">01/12/26(Sun)19:23:44</span>
+      <span style="color: #800000;">No.696969</span>
     </div>
     <div style="margin-top: 6px; line-height: 1.4;">
-      <span style="color: #789922;">&gt;broken ass chess</span><br>
-      <span style="color: #789922;">&gt;pieces literally won't move half the time</span><br>
-      <span style="color: #789922;">&gt;mfw this is what peak performance looks like</span><br>
+      <span style="color: #789922;">&gt;chaos chess</span><br>
+      <span style="color: #789922;">&gt;pieces have achieved sentience</span><br>
+      <span style="color: #789922;">&gt;board rotates mid-game</span><br>
       <br>
-      the bar was on the floor and somehow OP still tripped over it
+      this is the most beautiful disaster i've ever witnessed. it's like chess but designed by someone having a mental breakdown
     </div>
   </div>
 
@@ -571,32 +904,30 @@ button:active {
   <div style="background: #f0e0d6; border: 1px solid #d9bfb7; padding: 8px; margin-bottom: 8px;">
     <div style="font-size: 11px; color: #800000;">
       <span style="color: #117743; font-weight: bold;">Anonymous</span>
-      <span style="color: #800000;">01/06/26(Mon)14:52:33</span>
-      <span style="color: #800000;">No.690002</span>
+      <span style="color: #800000;">01/12/26(Sun)19:31:17</span>
+      <span style="color: #800000;">No.696970</span>
     </div>
     <div style="margin-top: 6px; line-height: 1.4;">
-      <span style="color: #789922;">&gt;&gt;690001</span><br>
-      trips confirm<br>
+      just clicked my rook and my pawn moved instead<br>
       <br>
-      the audio alone makes me want to uninstall my browser
+      absolutely fucking kek. this is chess gaslighting simulator 2026
     </div>
   </div>
 
-  <!-- Comment 3 - Sage -->
+  <!-- Comment 3 -->
   <div style="background: #f0e0d6; border: 1px solid #d9bfb7; padding: 8px; margin-bottom: 8px;">
     <div style="font-size: 11px; color: #800000;">
       <span style="color: #117743; font-weight: bold;">Anonymous</span>
-      <span style="color: #800000;">01/06/26(Mon)15:03:47</span>
-      <span style="color: #800000;">No.690003</span>
+      <span style="color: #800000;">01/12/26(Sun)19:45:09</span>
+      <span style="color: #800000;">No.696971</span>
     </div>
     <div style="margin-top: 6px; line-height: 1.4;">
-      sage<br>
+      <span style="color: #789922;">&gt;bishop turned into a knight mid-game</span><br>
+      <span style="color: #789922;">&gt;queen duplicated herself</span><br>
+      <span style="color: #789922;">&gt;board went back in time???</span><br>
+      <span style="color: #789922;">&gt;pieces started falling down due to "gravity"</span><br>
       <br>
-      <span style="color: #789922;">&gt;no AI</span><br>
-      <span style="color: #789922;">&gt;pieces don't even work right</span><br>
-      <span style="color: #789922;">&gt;calling this a "game"</span><br>
-      <br>
-      this is literally unplayable garbage. go back to /wsr/
+      i don't even know what's happening anymore but i can't stop playing
     </div>
   </div>
 
@@ -604,36 +935,34 @@ button:active {
   <div style="background: #f0e0d6; border: 1px solid #d9bfb7; padding: 8px; margin-bottom: 8px;">
     <div style="font-size: 11px; color: #800000;">
       <span style="color: #117743; font-weight: bold;">Anonymous</span>
-      <span style="color: #800000;">01/06/26(Mon)15:18:22</span>
-      <span style="color: #800000;">No.690004</span>
+      <span style="color: #800000;">01/12/26(Sun)20:02:55</span>
+      <span style="color: #800000;">No.696972</span>
     </div>
     <div style="margin-top: 6px; line-height: 1.4;">
-      <span style="color: #789922;">&gt;&gt;690003</span><br>
-      <span style="color: #789922;">&gt;not appreciating the aesthetic</span><br>
-      <span style="color: #789922;">&gt;not understanding it's intentionally broken</span><br>
+      THE CHAOS METER IS GENIUS<br>
       <br>
-      newfag detected. it's SUPPOSED to be brainrot you absolute muppet
+      watching it climb while everything descends into madness is pure dopamine. 10/10 would rage again
     </div>
   </div>
 
-  <!-- Comment 5 - Greentext story -->
+  <!-- Comment 5 - Greentext -->
   <div style="background: #f0e0d6; border: 1px solid #d9bfb7; padding: 8px; margin-bottom: 8px;">
     <div style="font-size: 11px; color: #800000;">
       <span style="color: #117743; font-weight: bold;">Anonymous</span>
-      <span style="color: #800000;">01/06/26(Mon)15:33:11</span>
-      <span style="color: #800000;">No.690005</span>
+      <span style="color: #800000;">01/12/26(Sun)20:18:33</span>
+      <span style="color: #800000;">No.696973</span>
     </div>
     <div style="margin-top: 6px; line-height: 1.4;">
       <span style="color: #789922;">&gt;be me</span><br>
-      <span style="color: #789922;">&gt;try to play chess with friend</span><br>
-      <span style="color: #789922;">&gt;bishop refuses to move diagonally</span><br>
-      <span style="color: #789922;">&gt;just sits there judging me</span><br>
-      <span style="color: #789922;">&gt;knight teleports to random square</span><br>
-      <span style="color: #789922;">&gt;pawn promotes itself to queen mid-game</span><br>
-      <span style="color: #789922;">&gt;friend ragequits</span><br>
-      <span style="color: #789922;">&gt;mfw i won by doing nothing</span><br>
+      <span style="color: #789922;">&gt;finally about to checkmate</span><br>
+      <span style="color: #789922;">&gt;piece decides "nah" and moves somewhere else</span><br>
+      <span style="color: #789922;">&gt;half my pieces turn invisible</span><br>
+      <span style="color: #789922;">&gt;board does a 180</span><br>
+      <span style="color: #789922;">&gt;chaos meter hits maximum</span><br>
+      <span style="color: #789922;">&gt;sound becomes literal ear torture</span><br>
+      <span style="color: #789922;">&gt;still having more fun than regular chess</span><br>
       <br>
-      10/10 would get gaslit by chess pieces again
+      this is peak game design. bobby fischer is rolling in his grave and i love it
     </div>
   </div>
 
@@ -641,26 +970,28 @@ button:active {
   <div style="background: #f0e0d6; border: 1px solid #d9bfb7; padding: 8px; margin-bottom: 8px;">
     <div style="font-size: 11px; color: #800000;">
       <span style="color: #117743; font-weight: bold;">Anonymous</span>
-      <span style="color: #800000;">01/06/26(Mon)16:07:44</span>
-      <span style="color: #800000;">No.690006</span>
+      <span style="color: #800000;">01/12/26(Sun)20:34:21</span>
+      <span style="color: #800000;">No.696974</span>
     </div>
     <div style="margin-top: 6px; line-height: 1.4;">
-      why does the rook sound like a fax machine having a stroke
+      clicked reset and it just shuffled the pieces around instead<br>
+      <br>
+      even the RESET BUTTON trolls you. this is art
     </div>
   </div>
 
-  <!-- Comment 7 - Dubs -->
+  <!-- Comment 7 -->
   <div style="background: #f0e0d6; border: 1px solid #d9bfb7; padding: 8px; margin-bottom: 8px;">
     <div style="font-size: 11px; color: #800000;">
       <span style="color: #117743; font-weight: bold;">Anonymous</span>
-      <span style="color: #800000;">01/06/26(Mon)16:22:22</span>
-      <span style="color: #800000;">No.690007</span>
+      <span style="color: #800000;">01/12/26(Sun)20:51:12</span>
+      <span style="color: #800000;">No.696975</span>
     </div>
     <div style="margin-top: 6px; line-height: 1.4;">
-      <span style="color: #789922;">&gt;&gt;690006</span><br>
-      kek'd<br>
+      <span style="color: #789922;">&gt;&gt;696973</span><br>
+      <span style="color: #789922;">&gt;bobby fischer rolling in his grave</span><br>
       <br>
-      check my dubs and OP has to add castling
+      kek'd. this is what happens when you let the AI cook. and by cook i mean have a complete psychotic break
     </div>
   </div>
 
@@ -668,15 +999,66 @@ button:active {
   <div style="background: #f0e0d6; border: 1px solid #d9bfb7; padding: 8px; margin-bottom: 8px;">
     <div style="font-size: 11px; color: #800000;">
       <span style="color: #117743; font-weight: bold;">Anonymous</span>
-      <span style="color: #800000;">01/06/26(Mon)17:15:03</span>
-      <span style="color: #800000;">No.690008</span>
+      <span style="color: #800000;">01/12/26(Sun)21:07:44</span>
+      <span style="color: #800000;">No.696976</span>
     </div>
     <div style="margin-top: 6px; line-height: 1.4;">
-      <span style="color: #789922;">&gt;&gt;690007</span><br>
-      CHECKED<br>
+      the "valid moves" are LIES. they show you where you CAN'T move. absolute chaos. i'm crying
+    </div>
+  </div>
+
+  <!-- Comment 9 -->
+  <div style="background: #f0e0d6; border: 1px solid #d9bfb7; padding: 8px; margin-bottom: 8px;">
+    <div style="font-size: 11px; color: #800000;">
+      <span style="color: #117743; font-weight: bold;">Anonymous</span>
+      <span style="color: #800000;">01/12/26(Sun)21:23:56</span>
+      <span style="color: #800000;">No.696977</span>
+    </div>
+    <div style="margin-top: 6px; line-height: 1.4;">
+      this is more addictive than it has any right to be. the fact that it's INTENTIONALLY broken makes it somehow acceptable? brain is confused. send help
+    </div>
+  </div>
+
+  <!-- Comment 10 - Quads -->
+  <div style="background: #f0e0d6; border: 1px solid #d9bfb7; padding: 8px; margin-bottom: 8px;">
+    <div style="font-size: 11px; color: #800000;">
+      <span style="color: #117743; font-weight: bold;">Anonymous</span>
+      <span style="color: #800000;">01/12/26(Sun)21:44:44</span>
+      <span style="color: #800000;">No.696978</span>
+    </div>
+    <div style="margin-top: 6px; line-height: 1.4;">
+      check my quads and OP has to add a mode where it gets EVEN MORE chaotic<br>
       <br>
-      OP delivers or we riot. also this unironically slaps harder than chess.com<br>
-      the audio alone is worth it
+      like actually unplayable. maximum anarchy.
+    </div>
+  </div>
+
+  <!-- Comment 11 -->
+  <div style="background: #f0e0d6; border: 1px solid #d9bfb7; padding: 8px; margin-bottom: 8px;">
+    <div style="font-size: 11px; color: #800000;">
+      <span style="color: #117743; font-weight: bold;">Anonymous</span>
+      <span style="color: #800000;">01/12/26(Sun)22:01:09</span>
+      <span style="color: #800000;">No.696979</span>
+    </div>
+    <div style="margin-top: 6px; line-height: 1.4;">
+      <span style="color: #789922;">&gt;&gt;696978</span><br>
+      HOLY QUADS<br>
+      <br>
+      OP you heard the man. we need MAXIMUM CHAOS mode. make it completely unhinged
+    </div>
+  </div>
+
+  <!-- Comment 12 -->
+  <div style="background: #f0e0d6; border: 1px solid #d9bfb7; padding: 8px; margin-bottom: 8px;">
+    <div style="font-size: 11px; color: #800000;">
+      <span style="color: #117743; font-weight: bold;">Anonymous</span>
+      <span style="color: #800000;">01/12/26(Sun)22:19:37</span>
+      <span style="color: #800000;">No.696980</span>
+    </div>
+    <div style="margin-top: 6px; line-height: 1.4;">
+      showed this to my chess club. half of them are having existential crises. the other half can't stop laughing.<br>
+      <br>
+      this is what peak internet feels like
     </div>
   </div>
 </div>
