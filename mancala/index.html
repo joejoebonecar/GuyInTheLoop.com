@@ -82,6 +82,11 @@
       .turn-indicator { font-size: 0.7rem; margin-top: 2px; }
       button { padding: 4px 8px; font-size: 0.75rem; }
     }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
   </style>
 </head>
 <body>
@@ -116,14 +121,62 @@
       <p>ancient stone-counting game. 3d rendering.</p>
       <hr>
       <p><strong>select mode:</strong></p>
-      <div class="mode-select">
-        <button onclick="startGame('pvp')">2 players</button>
-        <button onclick="startGame('cpu')">vs computer</button>
+      <div style="display: grid; grid-template-columns: 1fr; gap: 8px; margin: 16px 0;">
+        <button onclick="startGame('pvp')">👥 2 Players</button>
+        <button onclick="startGame('cpu')">🤖 VS Computer (AI)</button>
+        <button onclick="startGame('chaos')" style="background: #ff6b6b; color: #fff; font-weight: bold;">🔥 CHAOS MODE (STONES HAVE FREE WILL)</button>
       </div>
       <p style="font-size: 11px; margin-top: 12px; color: #666;">
         rules: click a pit on your side. stones distribute counter-clockwise.<br>
-        landing in your store gives you another turn.
+        landing in your store gives you another turn.<br>
+        <br>
+        <b>chaos mode:</b> stones count wrong. pits swap. physics optional.
       </p>
+    </div>
+  </div>
+
+  <!-- 2-Player Disclaimer -->
+  <div id="twoPlayerDisclaimer" style="display: none; position: fixed; inset: 0; background: rgba(238, 242, 255, 0.95); z-index: 11; align-items: center; justify-content: center;">
+    <div class="card" style="max-width: 600px;">
+      <h3 style="color: #ff6b6b; margin-bottom: 12px;">⚠️ TWO PLAYER WEB MANCALA DISCLAIMER ⚠️</h3>
+      <p style="font-size: 12px; line-height: 1.6;">
+        You're about to play a 2-player mancala game on a single browser with no backend support.
+        This means you'll be taking turns looking at the screen while the other person... what?
+        Closes their eyes? Studies the ceiling? Hums the Jeopardy theme?
+        <br><br>
+        <b>What are you going to do?</b> Take turns on the same device?
+        Jerk each other off to a shrine of Dr. Pepper cans while you wait for your turn?
+        <br><br>
+        This is objectively the most awkward way to play mancala.
+        But hey, you clicked it. That's on you. Have fun with your questionable life choices.
+        <br><br>
+        <i>- Management</i>
+      </p>
+      <button onclick="document.getElementById('twoPlayerDisclaimer').style.display='none'" style="margin-top: 16px; background: #ffd43b; font-weight: bold;">I ACCEPT THE AWKWARDNESS</button>
+    </div>
+  </div>
+
+  <!-- Chaos Warning -->
+  <div id="chaosWarning" style="display: none; position: fixed; inset: 0; background: rgba(238, 242, 255, 0.95); z-index: 11; align-items: center; justify-content: center;">
+    <div class="card" style="max-width: 600px;">
+      <h3 style="color: #ff6b6b; margin-bottom: 12px; animation: pulse 2s infinite;">⚠️ WARNING: STONES HAVE ACHIEVED SENTIENCE ⚠️</h3>
+      <p style="font-size: 12px; line-height: 1.6;">
+        You are about to enter <b>CHAOS MODE</b> where:
+        <br><br>
+        • Stones count themselves incorrectly<br>
+        • Pits randomly swap their contents<br>
+        • The board occasionally flips orientation<br>
+        • Gravity is a suggestion<br>
+        • Math.exe has stopped working<br>
+        • Stones may refuse to move<br>
+        • Your turn might get skipped<br>
+        • Winning conditions are negotiable<br>
+        <br>
+        <b>Physics optional. Logic forbidden. Sanity not guaranteed.</b>
+        <br><br>
+        This is mancala on psychedelics. Continue at your own risk.
+      </p>
+      <button onclick="document.getElementById('chaosWarning').style.display='none'" style="margin-top: 16px; background: #ff6b6b; color: #fff; font-weight: bold;">EMBRACE THE CHAOS</button>
     </div>
   </div>
 
@@ -930,6 +983,14 @@ const App = (() => {
 // Global Hooks
 function startGame(mode) {
   document.getElementById('modal').classList.add('hidden');
+
+  // Show appropriate disclaimer
+  if (mode === 'pvp') {
+    document.getElementById('twoPlayerDisclaimer').style.display = 'flex';
+  } else if (mode === 'chaos') {
+    document.getElementById('chaosWarning').style.display = 'flex';
+  }
+
   App.setMode(mode);
   App.init(); // Audio context starts here
 }

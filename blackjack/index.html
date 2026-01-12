@@ -1,157 +1,827 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>blackjack.exe</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>blackjack - /gitl/</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-        body {
-            font-family: 'Courier New', monospace;
-            background: #eef2ff;
-            color: #000;
-            padding: 20px;
-            line-height: 1.4;
-        }
+body {
+  background: #eef2ff;
+  font-family: monospace;
+  font-size: 13px;
+  color: #000;
+  padding: 12px;
+}
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
+.container { max-width: 900px; margin: 0 auto; }
 
-        h1 {
-            font-size: 18px;
-            font-weight: normal;
-            margin-bottom: 20px;
-            padding: 10px;
-            background: #d6daf0;
-            border: 1px solid #b7c5d9;
-        }
+.header {
+  background: #d6daf0;
+  border: 1px solid #b7c5d9;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-        .game-area {
-            background: #f0e0d6;
-            border: 1px solid #b7c5d9;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
+.title {
+  font-weight: bold;
+  font-size: 16px;
+}
 
-        .dealer-area, .player-area {
-            margin-bottom: 30px;
-        }
+.back-link {
+  color: #34345c;
+  text-decoration: none;
+  font-size: 12px;
+}
 
-        .label {
-            font-size: 14px;
-            margin-bottom: 10px;
-            text-transform: lowercase;
-        }
+.back-link:hover { color: #d00; }
 
-        .cards {
-            min-height: 100px;
-            padding: 10px;
-            background: #fff;
-            border: 1px solid #b7c5d9;
-            margin-bottom: 10px;
-        }
+.game-container {
+  background: #f0e0d6;
+  border: 1px solid #d9bfb7;
+  padding: 12px;
+}
 
-        .score {
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
+.status {
+  font-size: 14px;
+  font-weight: bold;
+  padding: 12px;
+  background: #ffe;
+  border: 1px solid #d9bfb7;
+  text-align: center;
+  margin-bottom: 12px;
+}
 
-        .controls {
-            background: #d6daf0;
-            border: 1px solid #b7c5d9;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
+.table {
+  background: #228b22;
+  border: 2px solid #000;
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 12px;
+  min-height: 300px;
+}
 
-        button {
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            padding: 8px 16px;
-            margin-right: 10px;
-            margin-bottom: 10px;
-            background: #f0e0d6;
-            border: 1px solid #b7c5d9;
-            cursor: pointer;
-            text-transform: lowercase;
-        }
+.hand {
+  margin: 20px 0;
+  padding: 12px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+}
 
-        button:hover {
-            background: #e0d0c6;
-        }
+.hand-title {
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
 
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+.cards {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-height: 60px;
+  align-items: center;
+}
 
-        .status {
-            font-size: 14px;
-            padding: 10px;
-            background: #fff;
-            border: 1px solid #b7c5d9;
-            margin-bottom: 10px;
-            text-transform: lowercase;
-        }
+.card {
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 18px;
+  font-weight: bold;
+  min-width: 45px;
+  text-align: center;
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
 
-        .back-link {
-            display: inline-block;
-            color: #34345c;
-            text-decoration: underline;
-            font-size: 14px;
-            margin-top: 20px;
-        }
+.card.hidden {
+  background: linear-gradient(45deg, #8b0000 25%, #b22222 25%, #b22222 50%, #8b0000 50%, #8b0000 75%, #b22222 75%, #b22222);
+  background-size: 20px 20px;
+  color: transparent;
+}
 
-        .back-link:hover {
-            color: #dd0000;
-        }
-    </style>
+.score {
+  color: #ffd700;
+  font-size: 14px;
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+button {
+  flex: 1;
+  min-width: 120px;
+  background: #f0e0d6;
+  border: 1px solid #b7c5d9;
+  padding: 12px;
+  font-family: monospace;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover:not(:disabled) {
+  background: #d6daf0;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.primary {
+  background: #ff6b6b;
+  color: #fff;
+  border-color: #c92a2a;
+}
+
+button.primary:hover:not(:disabled) {
+  background: #c92a2a;
+}
+
+.info-panel {
+  background: #d6daf0;
+  border: 1px solid #b7c5d9;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.info-panel h3 {
+  font-size: 12px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  color: #666;
+}
+
+#aiTrashTalk {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid #c92a2a;
+  padding: 12px;
+  min-height: 80px;
+  line-height: 1.4;
+  font-size: 12px;
+  color: #fff;
+}
+
+.warning {
+  background: #ff6b6b;
+  border: 2px solid #c92a2a;
+  padding: 12px;
+  color: #fff;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.disclaimer {
+  background: #ffe;
+  border: 1px solid #d9bfb7;
+  padding: 12px;
+  margin-bottom: 12px;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.chaos-active {
+  animation: shake 0.5s ease-in-out;
+}
+
+.spinning-card {
+  animation: spin 1s linear infinite;
+}
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>blackjack.exe</h1>
 
-        <div class="status" id="status">
-            click 'new game' to start
-        </div>
+<div class="container">
+  <div class="header">
+    <div class="title">🃏 BLACKJACK: THE HOUSE ALWAYS WINS (OR DOES IT?) 🃏</div>
+    <a href="../index.html" class="back-link">← back to /gitl/</a>
+  </div>
 
-        <div class="game-area">
-            <div class="dealer-area">
-                <div class="label">dealer:</div>
-                <div class="cards" id="dealer-cards">
-                    <!-- dealer cards will go here -->
-                </div>
-                <div class="score" id="dealer-score">score: -</div>
-            </div>
+  <!-- Mode Selector -->
+  <div id="modeSelector" style="background: #d6daf0; border: 2px solid #b7c5d9; padding: 20px; text-align: center;">
+    <h2 style="margin-bottom: 16px;">CHOOSE YOUR DESTRUCTION</h2>
+    <button onclick="startGame('ai')" class="primary" style="display: block; width: 100%; margin: 8px 0; padding: 12px; font-size: 14px;">
+      🤖 VS ABUSIVE AI DEALER (RECOMMENDED)
+    </button>
+    <button onclick="startGame('human')" style="display: block; width: 100%; margin: 8px 0; padding: 12px; font-size: 14px;">
+      👥 TWO PLAYER MODE (WEIRD)
+    </button>
+    <button onclick="startGame('chaos')" class="primary" style="display: block; width: 100%; margin: 8px 0; padding: 12px; font-size: 14px;">
+      🔥 CHAOS MODE (CARDS HAVE FREE WILL)
+    </button>
+  </div>
 
-            <div class="player-area">
-                <div class="label">player:</div>
-                <div class="cards" id="player-cards">
-                    <!-- player cards will go here -->
-                </div>
-                <div class="score" id="player-score">score: -</div>
-            </div>
-        </div>
+  <!-- 2-Player Disclaimer -->
+  <div id="twoPlayerDisclaimer" class="disclaimer" style="display: none;">
+    <h4 style="margin-bottom: 8px; color: #ff6b6b;">⚠️ TWO PLAYER WEB BLACKJACK DISCLAIMER ⚠️</h4>
+    <p>
+      You're about to play a 2-player blackjack game on a single browser with no backend support.
+      This means you'll be taking turns looking at the screen while the other person... what?
+      Closes their eyes? Looks away? Makes airplane noises?
+      <br><br>
+      <b>What are you going to do?</b> Take turns on the same device?
+      Jerk each other off to a shrine of Dr. Pepper cans while you wait for your turn?
+      <br><br>
+      This is objectively the most awkward way to play blackjack.
+      But hey, you clicked it. That's on you. Have fun with your questionable life choices.
+      <br><br>
+      <i>- Management</i>
+    </p>
+  </div>
 
-        <div class="controls">
-            <button id="new-game-btn">new game</button>
-            <button id="hit-btn" disabled>hit</button>
-            <button id="stand-btn" disabled>stand</button>
-            <button id="double-btn" disabled>double down</button>
-        </div>
+  <!-- Chaos Warning -->
+  <div id="chaosWarning" class="warning" style="display: none; animation: pulse 2s infinite;">
+    ⚠️ WARNING: CARDS HAVE ACHIEVED SENTIENCE ⚠️<br>
+    <span style="font-size: 11px;">deck physics are optional. math is a suggestion. your sanity is not guaranteed.</span>
+  </div>
 
-        <a href="../index.html" class="back-link">back to /gitl/</a>
+  <!-- Game Container -->
+  <div id="gameContainer" class="game-container" style="display: none;">
+    <div class="status" id="status">click new game to start</div>
+
+    <!-- AI Trash Talk Panel -->
+    <div id="aiPanel" class="info-panel" style="background: #ff6b6b; border-color: #c92a2a; color: #fff; display: none;">
+      <h3 style="color: #fff;">🤖 DEALER TRASH TALK 🤖</h3>
+      <div id="aiTrashTalk">Waiting for you to make terrible decisions...</div>
     </div>
 
-    <script>
-        // game logic goes here
-        console.log('blackjack.exe loaded');
-    </script>
+    <!-- Game Table -->
+    <div class="table" id="table">
+      <div class="hand">
+        <div class="hand-title" id="dealerLabel">Dealer</div>
+        <div class="cards" id="dealerCards"></div>
+        <div class="score" id="dealerScore">Score: ?</div>
+      </div>
+
+      <div class="hand">
+        <div class="hand-title" id="playerLabel">Player</div>
+        <div class="cards" id="playerCards"></div>
+        <div class="score" id="playerScore">Score: 0</div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button onclick="newGame()" class="primary">NEW GAME</button>
+      <button onclick="hit()" id="hitBtn" disabled>HIT</button>
+      <button onclick="stand()" id="standBtn" disabled>STAND</button>
+      <button onclick="doubleDown()" id="doubleBtn" disabled>DOUBLE DOWN</button>
+    </div>
+
+    <!-- Chaos Controls -->
+    <div id="chaosControls" style="display: none;">
+      <div class="info-panel">
+        <h3>😈 CHAOS TOGGLES 😈</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+          <label style="display: flex; align-items: center; gap: 4px;">
+            <input type="checkbox" id="chaosShuffle" checked> Card Shuffle Mid-Game
+          </label>
+          <label style="display: flex; align-items: center; gap: 4px;">
+            <input type="checkbox" id="chaosWrongValues" checked> Wrong Card Values
+          </label>
+          <label style="display: flex; align-items: center; gap: 4px;">
+            <input type="checkbox" id="chaosDealerCheats" checked> Dealer Cheats
+          </label>
+          <label style="display: flex; align-items: center; gap: 4px;">
+            <input type="checkbox" id="chaosScoreGlitch" checked> Score Glitches
+          </label>
+          <label style="display: flex; align-items: center; gap: 4px;">
+            <input type="checkbox" id="chaosCardSwap" checked> Random Card Swaps
+          </label>
+          <label style="display: flex; align-items: center; gap: 4px;">
+            <input type="checkbox" id="chaosGravity" checked> Card Gravity
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      <h4>GAME MODES EXPLAINED:</h4>
+      <b>AI Mode:</b> The dealer is an abusive AI that will mock your every move. Trash talk included. Your feelings will be hurt.<br><br>
+      <b>2-Player Mode:</b> One person is the dealer, one is the player. Take turns. Try not to peek. This is stupid and you know it.<br><br>
+      <b>Chaos Mode:</b> Cards shuffle mid-game. Values are lies. The dealer cheats. Scores glitch. Cards swap randomly. Gravity is optional. Nothing makes sense. This is blackjack on psychedelics.<br><br>
+      <i>Remember: The house always wins. Except in chaos mode. Then nobody wins. Especially not your sanity.</i>
+    </div>
+  </div>
+</div>
+
+<script>
+// Game state
+let gameMode = null;
+let deck = [];
+let playerHand = [];
+let dealerHand = [];
+let gameActive = false;
+let canDoubleDown = false;
+let currentPlayer = 'player'; // For 2-player mode
+let chaosLevel = 0;
+let moveCount = 0;
+
+// Card suits and values
+const suits = ['♠', '♥', '♦', '♣'];
+const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+// AI Trash Talk
+const AI_TRASH_TALK = {
+  start: [
+    "Let me show you how to lose money efficiently.",
+    "I've dealt to thousands of losers. You'll fit right in.",
+    "Ready to donate your chips to the house?",
+    "Pro tip: The house always wins. Spoiler alert: I'm the house.",
+    "I can already see the regret in your cursor movements."
+  ],
+  afterPlayerHit: [
+    "Bold move. By bold I mean stupid.",
+    "Did you seriously just hit on that? LMAO",
+    "I've seen better decisions from a random number generator.",
+    "That's one way to lose. Not the fastest, but creative.",
+    "Are you trying to bust or does it just come naturally?",
+    "Interesting strategy: the 'lose immediately' approach.",
+    "Every card you take brings you closer to poverty.",
+    "Hit again. I dare you. I DOUBLE dare you."
+  ],
+  afterPlayerStand: [
+    "Coward. But also smart. Mostly coward though.",
+    "Standing on that? Okay, your funeral.",
+    "Bold of you to assume that's enough to beat me.",
+    "Good luck with that score. You'll need it.",
+    "Congratulations on giving up at the perfect moment to still lose.",
+    "That's your final answer? Really? Okay..."
+  ],
+  playerBust: [
+    "BUST! Thanks for playing, sucker.",
+    "Went over 21? Shocking. Said no one.",
+    "LOL get absolutely wrecked.",
+    "You played yourself. Literally.",
+    "That's what we call a 'skill issue'.",
+    "House wins again. Yawn. Next victim please.",
+    "Better luck never. You're bad at this."
+  ],
+  dealerWins: [
+    "Dealer wins. Did you ever doubt it?",
+    "Another W for the house. Another L for you.",
+    "I'd say good game but was it though?",
+    "This is what peak performance looks like.",
+    "The house always wins baby. ALWAYS.",
+    "Thanks for your donation to the casino fund.",
+    "Come back when you learn to count cards. JK don't come back."
+  ],
+  playerWins: [
+    "You... won? This is rigged. Must be lag.",
+    "Congratulations on your fluke victory.",
+    "Even a broken clock is right twice a day.",
+    "Don't get used to it. This was a statistical anomaly.",
+    "I let you win. I felt bad for you.",
+    "Beginner's luck is the only luck you have.",
+    "Enjoy your moment. It won't last."
+  ],
+  playerBlackjack: [
+    "Blackjack? Must be nice having the RNG on your side.",
+    "Of course you get blackjack. Of course.",
+    "This game is rigged. For you. Somehow.",
+    "I'm calling the gaming commission about this.",
+    "That's lucky not skilled. Remember that."
+  ],
+  thinking: [
+    "Calculating optimal ways to destroy you...",
+    "Let me just hit on 16... kidding I'm not an idiot like you...",
+    "Processing... you're still going to lose...",
+    "Running win_condition.exe... yep still me...",
+    "Analyzing... yep you're cooked."
+  ]
+};
+
+const CHAOS_MESSAGES = [
+  "cards decided to shuffle themselves",
+  "that's not the card you drew but ok",
+  "the deck unionized and demands better working conditions",
+  "math.exe has stopped working",
+  "21? more like 42. or 7. who knows anymore",
+  "your cards identified as different cards",
+  "gravity reversed. cards falling upward now",
+  "the dealer is cheating. obviously.",
+  "score calculation service is on strike",
+  "cards are having an identity crisis",
+  "the deck is sentient and uncooperative",
+  "house rules: there are no rules",
+  "physics is a suggestion",
+  "that ace is actually a 7 disguised as an ace",
+  "dealer has creative interpretation of card values"
+];
+
+function startGame(mode) {
+  gameMode = mode;
+  document.getElementById('modeSelector').style.display = 'none';
+  document.getElementById('gameContainer').style.display = 'block';
+
+  if (mode === 'ai') {
+    document.getElementById('aiPanel').style.display = 'block';
+    document.getElementById('twoPlayerDisclaimer').style.display = 'none';
+    document.getElementById('chaosWarning').style.display = 'none';
+    document.getElementById('chaosControls').style.display = 'none';
+    showAITrashTalk('start');
+  } else if (mode === 'human') {
+    document.getElementById('aiPanel').style.display = 'none';
+    document.getElementById('twoPlayerDisclaimer').style.display = 'block';
+    document.getElementById('chaosWarning').style.display = 'none';
+    document.getElementById('chaosControls').style.display = 'none';
+  } else if (mode === 'chaos') {
+    document.getElementById('aiPanel').style.display = 'none';
+    document.getElementById('twoPlayerDisclaimer').style.display = 'none';
+    document.getElementById('chaosWarning').style.display = 'block';
+    document.getElementById('chaosControls').style.display = 'block';
+  }
+
+  updateLabels();
+}
+
+function updateLabels() {
+  if (gameMode === 'human') {
+    document.getElementById('dealerLabel').textContent = currentPlayer === 'dealer' ? 'Dealer (YOUR TURN)' : 'Dealer';
+    document.getElementById('playerLabel').textContent = currentPlayer === 'player' ? 'Player (YOUR TURN)' : 'Player';
+  } else {
+    document.getElementById('dealerLabel').textContent = 'Dealer';
+    document.getElementById('playerLabel').textContent = 'Player';
+  }
+}
+
+function showAITrashTalk(category) {
+  if (gameMode !== 'ai') return;
+  const messages = AI_TRASH_TALK[category];
+  if (!messages) return;
+  const message = messages[Math.floor(Math.random() * messages.length)];
+  document.getElementById('aiTrashTalk').textContent = message;
+}
+
+function showChaosMessage() {
+  if (gameMode !== 'chaos') return;
+  const msg = CHAOS_MESSAGES[Math.floor(Math.random() * CHAOS_MESSAGES.length)];
+  const status = document.getElementById('status');
+  const originalText = status.textContent;
+  status.textContent = msg;
+  status.style.background = '#ff6b6b';
+  status.style.color = '#fff';
+  setTimeout(() => {
+    status.textContent = originalText;
+    status.style.background = '#ffe';
+    status.style.color = '#000';
+  }, 2000);
+}
+
+function createDeck() {
+  deck = [];
+  for (let i = 0; i < (gameMode === 'chaos' ? 1 : 6); i++) {
+    for (let suit of suits) {
+      for (let value of values) {
+        deck.push({ value, suit });
+      }
+    }
+  }
+  shuffleDeck();
+}
+
+function shuffleDeck() {
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+}
+
+function getCardValue(card) {
+  if (card.value === 'A') return 11;
+  if (['J', 'Q', 'K'].includes(card.value)) return 10;
+  return parseInt(card.value);
+}
+
+function calculateScore(hand) {
+  let score = 0;
+  let aces = 0;
+
+  // CHAOS: Wrong score calculation
+  if (gameMode === 'chaos' && document.getElementById('chaosScoreGlitch').checked && Math.random() < 0.3) {
+    return Math.floor(Math.random() * 30) + 1;
+  }
+
+  for (let card of hand) {
+    let value = getCardValue(card);
+
+    // CHAOS: Wrong card values
+    if (gameMode === 'chaos' && document.getElementById('chaosWrongValues').checked && Math.random() < 0.2) {
+      value = Math.floor(Math.random() * 11) + 1;
+    }
+
+    if (card.value === 'A') {
+      aces++;
+      score += 11;
+    } else {
+      score += value;
+    }
+  }
+
+  while (score > 21 && aces > 0) {
+    score -= 10;
+    aces--;
+  }
+
+  return score;
+}
+
+function displayCards(hand, elementId, hideFirst = false) {
+  const element = document.getElementById(elementId);
+  element.innerHTML = '';
+
+  hand.forEach((card, index) => {
+    const cardDiv = document.createElement('div');
+    cardDiv.className = 'card';
+
+    if (hideFirst && index === 0) {
+      cardDiv.classList.add('hidden');
+      cardDiv.textContent = '???';
+    } else {
+      // CHAOS: Cards display wrong values
+      if (gameMode === 'chaos' && document.getElementById('chaosWrongValues').checked && Math.random() < 0.15) {
+        const fakeValue = values[Math.floor(Math.random() * values.length)];
+        const fakeSuit = suits[Math.floor(Math.random() * suits.length)];
+        cardDiv.textContent = fakeValue + fakeSuit;
+      } else {
+        cardDiv.textContent = card.value + card.suit;
+      }
+
+      // CHAOS: Spinning cards
+      if (gameMode === 'chaos' && Math.random() < 0.1) {
+        cardDiv.classList.add('spinning-card');
+      }
+    }
+
+    element.appendChild(cardDiv);
+  });
+}
+
+function updateScores(revealDealer = false) {
+  const playerScore = calculateScore(playerHand);
+  document.getElementById('playerScore').textContent = `Score: ${playerScore}`;
+
+  if (revealDealer) {
+    const dealerScore = calculateScore(dealerHand);
+    document.getElementById('dealerScore').textContent = `Score: ${dealerScore}`;
+  } else {
+    document.getElementById('dealerScore').textContent = 'Score: ?';
+  }
+}
+
+function updateStatus(message) {
+  document.getElementById('status').textContent = message;
+}
+
+function dealCard(hand) {
+  if (deck.length === 0) {
+    if (gameMode === 'chaos') {
+      showChaosMessage();
+    }
+    createDeck();
+  }
+  const card = deck.pop();
+  hand.push(card);
+
+  // CHAOS: Card shuffle mid-game
+  if (gameMode === 'chaos' && document.getElementById('chaosShuffle').checked && Math.random() < 0.15) {
+    shuffleDeck();
+    showChaosMessage();
+  }
+
+  return card;
+}
+
+function hasBlackjack(hand) {
+  return hand.length === 2 && calculateScore(hand) === 21;
+}
+
+function newGame() {
+  createDeck();
+  playerHand = [];
+  dealerHand = [];
+  gameActive = true;
+  canDoubleDown = true;
+  moveCount = 0;
+  chaosLevel = 0;
+  currentPlayer = 'player';
+
+  dealCard(playerHand);
+  dealCard(dealerHand);
+  dealCard(playerHand);
+  dealCard(dealerHand);
+
+  displayCards(dealerHand, 'dealerCards', true);
+  displayCards(playerHand, 'playerCards');
+  updateScores(false);
+
+  if (hasBlackjack(playerHand)) {
+    if (hasBlackjack(dealerHand)) {
+      endGame('push! both have blackjack');
+    } else {
+      if (gameMode === 'ai') showAITrashTalk('playerBlackjack');
+      endGame('BLACKJACK! you win!');
+    }
+    return;
+  }
+
+  updateStatus(gameMode === 'human' ? 'player\'s turn - hit or stand?' : 'your turn - hit or stand?');
+  enableButtons(true);
+  updateLabels();
+}
+
+function hit() {
+  if (!gameActive) return;
+
+  moveCount++;
+  canDoubleDown = false;
+  document.getElementById('doubleBtn').disabled = true;
+
+  if (gameMode === 'ai') {
+    showAITrashTalk('afterPlayerHit');
+  }
+
+  dealCard(playerHand);
+
+  // CHAOS: Card swap
+  if (gameMode === 'chaos' && document.getElementById('chaosCardSwap').checked && Math.random() < 0.2 && playerHand.length > 2) {
+    const idx1 = Math.floor(Math.random() * playerHand.length);
+    const idx2 = Math.floor(Math.random() * playerHand.length);
+    [playerHand[idx1], playerHand[idx2]] = [playerHand[idx2], playerHand[idx1]];
+    showChaosMessage();
+  }
+
+  displayCards(playerHand, 'playerCards');
+  updateScores(false);
+
+  const playerScore = calculateScore(playerHand);
+  if (playerScore > 21) {
+    if (gameMode === 'ai') showAITrashTalk('playerBust');
+    endGame('BUST! dealer wins');
+  } else if (playerScore === 21) {
+    stand();
+  }
+}
+
+function stand() {
+  if (!gameActive) return;
+
+  if (gameMode === 'ai') {
+    showAITrashTalk('afterPlayerStand');
+  }
+
+  enableButtons(false);
+
+  if (gameMode === 'human') {
+    // In 2-player mode, switch to dealer
+    currentPlayer = 'dealer';
+    updateLabels();
+    updateStatus('dealer\'s turn - hit or stand?');
+    enableButtons(true);
+    document.getElementById('doubleBtn').disabled = true;
+    displayCards(dealerHand, 'dealerCards', false);
+    updateScores(true);
+    return;
+  }
+
+  updateStatus('dealer\'s turn...');
+  displayCards(dealerHand, 'dealerCards', false);
+  updateScores(true);
+
+  if (gameMode === 'ai') {
+    showAITrashTalk('thinking');
+  }
+
+  setTimeout(dealerPlay, 1000);
+}
+
+function dealerPlay() {
+  let dealerScore = calculateScore(dealerHand);
+
+  // CHAOS: Dealer cheats
+  if (gameMode === 'chaos' && document.getElementById('chaosDealerCheats').checked && Math.random() < 0.3) {
+    const playerScore = calculateScore(playerHand);
+    if (dealerScore < playerScore && dealerScore < 21) {
+      dealCard(dealerHand);
+      displayCards(dealerHand, 'dealerCards', false);
+      updateScores(true);
+      showChaosMessage();
+      setTimeout(dealerPlay, 800);
+      return;
+    }
+  }
+
+  if (dealerScore < 17) {
+    dealCard(dealerHand);
+    displayCards(dealerHand, 'dealerCards', false);
+    updateScores(true);
+    setTimeout(dealerPlay, 800);
+  } else {
+    determineWinner();
+  }
+}
+
+function doubleDown() {
+  if (!gameActive || !canDoubleDown) return;
+
+  dealCard(playerHand);
+  displayCards(playerHand, 'playerCards');
+  updateScores(false);
+
+  const playerScore = calculateScore(playerHand);
+  if (playerScore > 21) {
+    if (gameMode === 'ai') showAITrashTalk('playerBust');
+    endGame('BUST! dealer wins');
+  } else {
+    stand();
+  }
+}
+
+function determineWinner() {
+  const playerScore = calculateScore(playerHand);
+  const dealerScore = calculateScore(dealerHand);
+
+  if (dealerScore > 21) {
+    if (gameMode === 'ai') showAITrashTalk('playerWins');
+    endGame('dealer busts! you win!');
+  } else if (playerScore > dealerScore) {
+    if (gameMode === 'ai') showAITrashTalk('playerWins');
+    endGame('you win!');
+  } else if (dealerScore > playerScore) {
+    if (gameMode === 'ai') showAITrashTalk('dealerWins');
+    endGame('dealer wins');
+  } else {
+    endGame('push! it\'s a tie');
+  }
+}
+
+function endGame(message) {
+  gameActive = false;
+  updateStatus(message);
+  displayCards(dealerHand, 'dealerCards', false);
+  updateScores(true);
+  enableButtons(false);
+}
+
+function enableButtons(enable) {
+  document.getElementById('hitBtn').disabled = !enable;
+  document.getElementById('standBtn').disabled = !enable;
+  document.getElementById('doubleBtn').disabled = !enable || !canDoubleDown;
+}
+
+// CHAOS: Random events
+setInterval(() => {
+  if (gameMode === 'chaos' && gameActive) {
+    // Card gravity - cards fall off table
+    if (document.getElementById('chaosGravity').checked && Math.random() < 0.05 && playerHand.length > 2) {
+      playerHand.pop();
+      displayCards(playerHand, 'playerCards');
+      updateScores(false);
+      showChaosMessage();
+    }
+
+    // Table shake
+    if (Math.random() < 0.1) {
+      document.getElementById('table').classList.add('chaos-active');
+      setTimeout(() => {
+        document.getElementById('table').classList.remove('chaos-active');
+      }, 500);
+    }
+  }
+}, 3000);
+
+console.log('blackjack.exe loaded - house always wins (probably)');
+</script>
+
 </body>
 </html>
