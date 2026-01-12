@@ -255,6 +255,24 @@ button:active {
     </button>
   </div>
 
+  <!-- 2-Player Disclaimer -->
+  <div id="twoPlayerDisclaimer" style="display: none; background: #ffe; border: 1px solid #d9bfb7; padding: 12px; margin-bottom: 12px; font-size: 11px; line-height: 1.6;">
+    <h4 style="margin-bottom: 8px; color: #ff6b6b;">⚠️ TWO PLAYER WEB CHESS DISCLAIMER ⚠️</h4>
+    <p>
+      You're about to play a 2-player chess game on a single browser with no backend support.
+      This means you'll be taking turns looking at the screen while the other person... what?
+      Closes their eyes? Looks away? Pretends to be interested in the ceiling tiles?
+      <br><br>
+      <b>What are you going to do?</b> Take turns on the same device?
+      Jerk each other off to a shrine of Dr. Pepper cans while you wait for your turn?
+      <br><br>
+      This is objectively the most awkward way to play chess.
+      But hey, you clicked it. That's on you. Have fun with your questionable life choices.
+      <br><br>
+      <i>- Management</i>
+    </p>
+  </div>
+
   <div style="background: #ff6b6b; border: 2px solid #c92a2a; padding: 12px; margin-bottom: 12px; color: #fff; font-weight: bold; text-align: center; animation: pulse 2s infinite; display: none;" id="chaosWarning">
     ⚠️ WARNING: PIECES HAVE ACHIEVED SENTIENCE ⚠️<br>
     <span style="font-size: 11px;">they do what they want now. you're just along for the ride.</span>
@@ -1179,17 +1197,20 @@ button:active {
       document.getElementById('chaosPanel').style.display = 'none';
       document.getElementById('chaosWarning').style.display = 'none';
       document.getElementById('chaosBtn').style.display = 'none';
+      document.getElementById('twoPlayerDisclaimer').style.display = 'none';
       showAITrashTalk('start');
     } else if (mode === 'chaos') {
       document.getElementById('aiPanel').style.display = 'none';
       document.getElementById('chaosPanel').style.display = 'block';
       document.getElementById('chaosWarning').style.display = 'block';
       document.getElementById('chaosBtn').style.display = 'block';
+      document.getElementById('twoPlayerDisclaimer').style.display = 'none';
     } else {
       document.getElementById('aiPanel').style.display = 'none';
       document.getElementById('chaosPanel').style.display = 'none';
       document.getElementById('chaosWarning').style.display = 'none';
       document.getElementById('chaosBtn').style.display = 'none';
+      document.getElementById('twoPlayerDisclaimer').style.display = 'block';
     }
 
     // Initialize the game
