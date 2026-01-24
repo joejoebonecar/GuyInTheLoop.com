@@ -7,7 +7,7 @@
   <meta name="description" content="Anonymous · 01/06/26(Mon)13:37:00 No.420691337" />
   <style>
     :root{
-      /* Yotsuba B palette */
+      /* Yotsuba B palette (default) */
       --bg: #f0e0d6;
       --fg: #800000;
       --post-bg: #f0e0d6;
@@ -20,6 +20,150 @@
       --admin: #ff0000;
       --subject: #0f0c5d;
       --op-bg: #e9d;
+    }
+
+    /* Theme: Yotsuba (pink/pastel) */
+    [data-theme="yotsuba"] {
+      --bg: #f0e0d6;
+      --fg: #800000;
+      --post-bg: #f0e0d6;
+      --post-highlight: #f0c0d6;
+      --border: #d9bfb7;
+      --link: #34345c;
+      --link-hover: #dd0000;
+      --quote: #789922;
+      --name: #117743;
+      --admin: #ff0000;
+      --subject: #cc1105;
+      --op-bg: #f0c0d6;
+    }
+
+    /* Theme: Yotsuba B (beige/brown - current default) */
+    [data-theme="yotsuba-b"] {
+      --bg: #f0e0d6;
+      --fg: #800000;
+      --post-bg: #f0e0d6;
+      --post-highlight: #d6bad0;
+      --border: #d9bfb7;
+      --link: #34345c;
+      --link-hover: #dd0000;
+      --quote: #789922;
+      --name: #117743;
+      --admin: #ff0000;
+      --subject: #0f0c5d;
+      --op-bg: #e9d;
+    }
+
+    /* Theme: Tomorrow (dark) */
+    [data-theme="tomorrow"] {
+      --bg: #1d1f21;
+      --fg: #c5c8c6;
+      --post-bg: #282a2e;
+      --post-highlight: #373b41;
+      --border: #4d4d4d;
+      --link: #81a2be;
+      --link-hover: #cc6666;
+      --quote: #b5bd68;
+      --name: #b294bb;
+      --admin: #cc6666;
+      --subject: #f0c674;
+      --op-bg: #373b41;
+    }
+
+    /* Theme: Photon (clean white) */
+    [data-theme="photon"] {
+      --bg: #ffffff;
+      --fg: #333333;
+      --post-bg: #f5f5f5;
+      --post-highlight: #e9e9e9;
+      --border: #cccccc;
+      --link: #2b5797;
+      --link-hover: #d00000;
+      --quote: #709922;
+      --name: #117743;
+      --admin: #ff0000;
+      --subject: #0f0c5d;
+      --op-bg: #e9e9e9;
+    }
+
+    /* Theme: Futaba (classic blue) */
+    [data-theme="futaba"] {
+      --bg: #eef2ff;
+      --fg: #000000;
+      --post-bg: #f0e0d6;
+      --post-highlight: #d6daf0;
+      --border: #b7c5d9;
+      --link: #34345c;
+      --link-hover: #dd0000;
+      --quote: #789922;
+      --name: #117743;
+      --admin: #ff0000;
+      --subject: #0f0c5d;
+      --op-bg: #d6daf0;
+    }
+
+    /* Theme: Protanopia (red-blind friendly) */
+    [data-theme="protanopia"] {
+      --bg: #e8e8d0;
+      --fg: #4a4a00;
+      --post-bg: #f0f0e0;
+      --post-highlight: #d0d0c0;
+      --border: #b0b090;
+      --link: #0066cc;
+      --link-hover: #0088ee;
+      --quote: #6b8e23;
+      --name: #2e7d32;
+      --admin: #5a5a00;
+      --subject: #1565c0;
+      --op-bg: #d8d8c0;
+    }
+
+    /* Theme: Deuteranopia (green-blind friendly) */
+    [data-theme="deuteranopia"] {
+      --bg: #f0e8f0;
+      --fg: #4a004a;
+      --post-bg: #f5f0f5;
+      --post-highlight: #e0d0e0;
+      --border: #c0b0c0;
+      --link: #0066cc;
+      --link-hover: #cc6600;
+      --quote: #8b6914;
+      --name: #1565c0;
+      --admin: #cc0066;
+      --subject: #5e35b1;
+      --op-bg: #d8c8d8;
+    }
+
+    /* Theme: Tritanopia (blue-blind friendly) */
+    [data-theme="tritanopia"] {
+      --bg: #f0e8e8;
+      --fg: #4a0000;
+      --post-bg: #f5f0f0;
+      --post-highlight: #ffc0c0;
+      --border: #d0a0a0;
+      --link: #cc0066;
+      --link-hover: #ff0000;
+      --quote: #6b8e23;
+      --name: #2e7d32;
+      --admin: #cc0000;
+      --subject: #c62828;
+      --op-bg: #ffe0e0;
+    }
+
+    /* Theme: Achromatopsia (total colorblind - high contrast grayscale) */
+    [data-theme="achromatopsia"] {
+      --bg: #ffffff;
+      --fg: #000000;
+      --post-bg: #f0f0f0;
+      --post-highlight: #d0d0d0;
+      --border: #808080;
+      --link: #404040;
+      --link-hover: #000000;
+      --quote: #606060;
+      --name: #202020;
+      --admin: #000000;
+      --subject: #000000;
+      --op-bg: #e0e0e0;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -412,6 +556,63 @@
       font-weight: bold;
       color: var(--link-hover);
     }
+
+    /* Theme dropdown */
+    .themeDropdown {
+      display: inline-block;
+      position: relative;
+    }
+
+    .themeDropdown .dropdownContent {
+      display: none;
+      position: absolute;
+      background: var(--post-bg);
+      border: 1px solid var(--border);
+      min-width: 200px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      z-index: 1000;
+      top: 100%;
+      left: 0;
+      margin-top: 2px;
+    }
+
+    .themeDropdown:hover .dropdownContent {
+      display: block;
+    }
+
+    .dropdownContent a {
+      color: var(--fg);
+      padding: 8px 12px;
+      text-decoration: none;
+      display: block;
+      font-size: 9pt;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dropdownContent a:hover {
+      background: var(--post-highlight);
+      color: var(--link-hover);
+    }
+
+    .dropdownContent a:last-child {
+      border-bottom: none;
+    }
+
+    .dropdownContent a.active {
+      background: var(--post-highlight);
+      font-weight: bold;
+    }
+
+    @media (max-width: 520px) {
+      .themeDropdown .dropdownContent {
+        min-width: 180px;
+        font-size: 8pt;
+      }
+
+      .dropdownContent a {
+        padding: 10px 12px;
+      }
+    }
   </style>
 </head>
 
@@ -427,7 +628,20 @@
     [<a href="#home">Home</a>]
     [<a href="#rules" onclick="showRules(); return false;">Rules</a>]
     [<a href="#" onclick="location.reload(); return false;">Refresh</a>]
-    [<a href="#catalog">Catalog</a>]
+    [<span class="themeDropdown">
+      <a href="#" onclick="return false;">Themes ▼</a>
+      <div class="dropdownContent">
+        <a href="#" onclick="setTheme('yotsuba'); return false;" data-theme-option="yotsuba">Yotsuba</a>
+        <a href="#" onclick="setTheme('yotsuba-b'); return false;" data-theme-option="yotsuba-b">Yotsuba B</a>
+        <a href="#" onclick="setTheme('tomorrow'); return false;" data-theme-option="tomorrow">Tomorrow</a>
+        <a href="#" onclick="setTheme('photon'); return false;" data-theme-option="photon">Photon</a>
+        <a href="#" onclick="setTheme('futaba'); return false;" data-theme-option="futaba">Futaba</a>
+        <a href="#" onclick="setTheme('protanopia'); return false;" data-theme-option="protanopia">Protanopia</a>
+        <a href="#" onclick="setTheme('deuteranopia'); return false;" data-theme-option="deuteranopia">Deuteranopia</a>
+        <a href="#" onclick="setTheme('tritanopia'); return false;" data-theme-option="tritanopia">Tritanopia</a>
+        <a href="#" onclick="setTheme('achromatopsia'); return false;" data-theme-option="achromatopsia">Achromatopsia</a>
+      </div>
+    </span>]
     [<span class="wikiEgg"><a href="#" id="wikiLink1" target="_blank">?</a></span>]
   </div>
 
@@ -1152,6 +1366,15 @@
           if (link) link.href = getRandomWiki();
         }
       }, 10000);
+
+      // Load saved theme
+      const savedTheme = localStorage.getItem('gitl-theme');
+      if (savedTheme) {
+        setTheme(savedTheme);
+      } else {
+        // Default to yotsuba-b
+        setTheme('yotsuba-b');
+      }
     });
 
     // Rules overlay functions
@@ -1170,6 +1393,24 @@
         hideRules();
       }
     });
+
+    // Theme switching system
+    function setTheme(themeName) {
+      // Set theme on html element
+      document.documentElement.setAttribute('data-theme', themeName);
+
+      // Save to localStorage
+      localStorage.setItem('gitl-theme', themeName);
+
+      // Update active state in dropdown
+      document.querySelectorAll('.dropdownContent a').forEach(link => {
+        if (link.getAttribute('data-theme-option') === themeName) {
+          link.classList.add('active');
+        } else {
+          link.classList.remove('active');
+        }
+      });
+    }
   </script>
 <script data-goatcounter="https://guyintheloop.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
