@@ -1,0 +1,1177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>/gitl/ - Guy in the Loop</title>
+  <meta name="description" content="Anonymous · 01/06/26(Mon)13:37:00 No.420691337" />
+  <style>
+    :root{
+      /* Yotsuba B palette */
+      --bg: #f0e0d6;
+      --fg: #800000;
+      --post-bg: #f0e0d6;
+      --post-highlight: #d6bad0;
+      --border: #d9bfb7;
+      --link: #34345c;
+      --link-hover: #dd0000;
+      --quote: #789922;
+      --name: #117743;
+      --admin: #ff0000;
+      --subject: #0f0c5d;
+      --op-bg: #e9d;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: arial, helvetica, sans-serif;
+      font-size: 10pt;
+      padding: 0;
+      margin: 0;
+    }
+
+    /* Header bar */
+    .boardBanner {
+      background: var(--post-highlight);
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+      padding: 5px;
+      font-weight: bold;
+    }
+
+    .boardTitle {
+      font-size: 28px;
+      font-weight: bold;
+      color: var(--subject);
+      padding: 10px;
+    }
+
+    .boardSubtitle {
+      font-size: 9pt;
+      color: var(--fg);
+      padding-bottom: 8px;
+    }
+
+    /* Navigation links */
+    .boardNavDesktop {
+      text-align: center;
+      font-size: 9pt;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 5px;
+      background: var(--post-highlight);
+    }
+
+    a {
+      color: var(--link);
+      text-decoration: underline;
+    }
+
+    a:hover {
+      color: var(--link-hover);
+    }
+
+    /* Post container */
+    .board {
+      padding: 10px;
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    .thread {
+      margin-bottom: 10px;
+    }
+
+    .postContainer {
+      margin: 5px 0;
+    }
+
+    .post {
+      border: 1px solid var(--border);
+      padding: 5px;
+      margin-bottom: 8px;
+      background: var(--post-bg);
+      max-width: 100%;
+    }
+
+    .op {
+      background: var(--op-bg);
+    }
+
+    .postInfo {
+      font-size: 9pt;
+    }
+
+    .subject {
+      color: var(--subject);
+      font-weight: bold;
+    }
+
+    .nameBlock {
+      display: inline;
+    }
+
+    .name {
+      color: var(--name);
+      font-weight: bold;
+    }
+
+    .postertrip {
+      color: var(--admin);
+      font-weight: bold;
+    }
+
+    .dateTime {
+      color: var(--fg);
+    }
+
+    .postNum {
+      color: var(--fg);
+    }
+
+    .postNum a {
+      text-decoration: none;
+      color: var(--fg);
+    }
+
+    .postNum a:hover {
+      color: var(--link-hover);
+    }
+
+    .postMessage {
+      margin-top: 8px;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+
+    .quote {
+      color: var(--quote);
+    }
+
+    .deadlink {
+      color: var(--fg);
+      text-decoration: line-through;
+    }
+
+    /* Game links styled as reply posts */
+    .gamePost {
+      margin: 10px 0;
+      padding: 8px;
+      border: 1px solid var(--border);
+      background: var(--post-bg);
+    }
+
+    .gamePost:hover {
+      background: var(--post-highlight);
+    }
+
+    .gameLink {
+      font-weight: bold;
+      font-size: 11pt;
+      color: var(--link);
+      text-decoration: none;
+    }
+
+    .gameLink:hover {
+      color: var(--link-hover);
+    }
+
+    .gameDesc {
+      margin-top: 4px;
+      font-size: 9pt;
+      color: var(--fg);
+    }
+
+    /* Sticky/announcement */
+    .stickyIcon {
+      background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAQAAAC1QeVaAAAAUklEQVR4XqXPMQrAIBBE0Z/YpEgKC4vAXiCVR/EEHs3SQkxjZW2RNBbzmmF+sQ/D8zMv9z1z9+4eRWERFXGI8geL7C+yy+77SxZ/s/j/bQNgCx4ChqhKWQAAAABJRU5ErkJggg==') no-repeat;
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      vertical-align: middle;
+      margin-right: 3px;
+    }
+
+    /* Easter egg link styling */
+    .wikiEgg {
+      font-size: 7pt;
+      opacity: 0.5;
+      transition: opacity 0.2s;
+    }
+
+    .wikiEgg:hover {
+      opacity: 1;
+    }
+
+    /* Footer */
+    .boardFooter {
+      text-align: center;
+      font-size: 8pt;
+      color: var(--fg);
+      padding: 20px;
+      border-top: 1px solid var(--border);
+      margin-top: 20px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      body {
+        font-size: 11pt;
+      }
+
+      .board {
+        padding: 8px;
+        max-width: 100%;
+      }
+
+      .boardTitle {
+        font-size: 24px;
+        padding: 8px;
+      }
+
+      .boardSubtitle {
+        font-size: 8pt;
+      }
+
+      .boardNavDesktop {
+        font-size: 10pt;
+        padding: 8px;
+      }
+
+      .boardNavDesktop a {
+        padding: 4px 6px;
+        display: inline-block;
+      }
+
+      .post {
+        padding: 6px;
+        margin-bottom: 10px;
+      }
+
+      .postInfo {
+        font-size: 8pt;
+        line-height: 1.5;
+      }
+
+      .postMessage {
+        font-size: 10pt;
+        line-height: 1.5;
+      }
+
+      .gameLink {
+        font-size: 11pt;
+      }
+
+      .gameDesc {
+        font-size: 8pt;
+        line-height: 1.5;
+      }
+
+      .boardFooter {
+        font-size: 7pt;
+        padding: 15px 10px;
+      }
+
+      .rulesOverlay {
+        max-width: 90%;
+        padding: 15px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      body {
+        font-size: 10pt;
+      }
+
+      .board {
+        padding: 6px;
+      }
+
+      .boardBanner {
+        padding: 4px;
+      }
+
+      .boardTitle {
+        font-size: 20px;
+        padding: 6px;
+      }
+
+      .boardSubtitle {
+        font-size: 7pt;
+        padding-bottom: 4px;
+      }
+
+      .boardNavDesktop {
+        font-size: 9pt;
+        padding: 6px 4px;
+        line-height: 1.8;
+      }
+
+      .boardNavDesktop a {
+        padding: 6px 8px;
+        min-height: 32px;
+        display: inline-block;
+      }
+
+      .post {
+        padding: 5px;
+        margin-bottom: 8px;
+      }
+
+      .postInfo {
+        font-size: 7pt;
+        line-height: 1.6;
+      }
+
+      .postMessage {
+        font-size: 9pt;
+        line-height: 1.6;
+        margin-top: 6px;
+      }
+
+      .gameLink {
+        font-size: 10pt;
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .gameDesc {
+        font-size: 7pt;
+        line-height: 1.6;
+      }
+
+      .boardFooter {
+        font-size: 6pt;
+        padding: 12px 6px;
+      }
+
+      .rulesOverlay {
+        max-width: 95%;
+        padding: 12px;
+        font-size: 9pt;
+      }
+
+      .rulesOverlay h3 {
+        font-size: 10pt;
+      }
+
+      .rulesOverlay ol {
+        font-size: 8pt;
+        margin-left: 15px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .boardTitle {
+        font-size: 16px;
+      }
+
+      .boardNavDesktop {
+        font-size: 8pt;
+        padding: 4px 2px;
+      }
+
+      .post {
+        padding: 4px;
+      }
+
+      .postMessage {
+        font-size: 8pt;
+      }
+
+      .gameDesc {
+        font-size: 6.5pt;
+      }
+    }
+
+    /* Rules overlay (hidden by default) */
+    .rulesOverlay {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--post-bg);
+      border: 2px solid var(--border);
+      padding: 20px;
+      max-width: 500px;
+      z-index: 9999;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+
+    .rulesOverlay.show {
+      display: block;
+    }
+
+    .closeRules {
+      float: right;
+      cursor: pointer;
+      font-weight: bold;
+      color: var(--link-hover);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Board header -->
+  <div class="boardBanner">
+    <div class="boardTitle">/gitl/ - guy in the loop</div>
+    <div class="boardSubtitle">lurk moar</div>
+  </div>
+
+  <!-- Navigation -->
+  <div class="boardNavDesktop">
+    [<a href="#home">Home</a>]
+    [<a href="#rules" onclick="showRules(); return false;">Rules</a>]
+    [<a href="#" onclick="location.reload(); return false;">Refresh</a>]
+    [<a href="#catalog">Catalog</a>]
+    [<span class="wikiEgg"><a href="#" id="wikiLink1" target="_blank">?</a></span>]
+  </div>
+
+  <!-- Main board -->
+  <div class="board">
+    <!-- OP post -->
+    <div class="thread">
+      <div class="postContainer opContainer">
+        <div class="post op">
+          <div class="postInfo">
+            <span class="subject">Welcome to /gitl/</span>
+            <span class="nameBlock">
+              <span class="name">Anonymous</span>
+              <span class="postertrip">## Mod</span>
+            </span>
+            <span class="dateTime">01/06/26(Mon)13:37:00</span>
+            <span class="postNum">
+              <a href="#p1" title="Link to this post">No.</a>
+              <a href="#p1" title="Reply to this post">420691337</a>
+            </span>
+            <span class="stickyIcon" title="Sticky"></span>
+          </div>
+          <blockquote class="postMessage">
+            <span class="quote">&gt;be me</span><br>
+            <span class="quote">&gt;builds autistic LLM experiments in basement</span><br>
+            <span class="quote">&gt;refuses to elaborate</span><br>
+            <span class="quote">&gt;posts games anonymously</span><br>
+            <span class="quote">&gt;they're all broken on purpose</span><br>
+            <span class="quote">&gt;mfw people actually play them</span><br>
+            <br>
+            Low noise. High signal. Quiet refusal. Maximum cringe.<br>
+            <br>
+            This is a board for people who like systems but also like asking why those systems keep turning into cages.<br>
+            Also for people who think "physics is optional" is a valid game design philosophy.<br>
+            <br>
+            <b>Rules:</b><br>
+            1. Do not talk about /gitl/<br>
+            2. DO NOT talk about /gitl/<br>
+            3. No new█████ (jk lurk if you want)<br>
+            4. The <span class="deadlink">&gt;&gt;cake</span> is a lie<br>
+            5. All games are broken. This is intentional. Probably.<br>
+            6. If you find a bug, it's a feature now<br>
+            7. No refunds (you didn't pay anything but still)<br>
+            <br>
+            <b>Topics:</b> llms · ai systems · automation · sensemaking · anti-bullshit engineering · games that hate you<br>
+            <br>
+            <b>Current Status:</b> Fueled by Dr. Pepper and regret. Send help. Or more Dr. Pepper.<br>
+            <br>
+            <i>inb4 "this is the cancer that is killing /gitl/"</i><br>
+            <i>inb4 "OP is a ███ but i played blackjack for 3 hours"</i><br>
+            <i>inb4 "why does the chess AI play like it has brain damage"</i>
+          </blockquote>
+        </div>
+      </div>
+
+      <!-- Game posts styled as replies -->
+      <div class="postContainer replyContainer">
+        <div class="post reply">
+          <div class="postInfo">
+            <span class="nameBlock">
+              <span class="name">Anonymous</span>
+            </span>
+            <span class="dateTime">01/06/26(Mon)14:20:00</span>
+            <span class="postNum">
+              <a href="#p2">No.</a>
+              <a href="#p2">420691338</a>
+            </span>
+          </div>
+          <blockquote class="postMessage">
+            <span class="quote">&gt;&gt;420691337</span><br>
+            <a href="chess/index.html" class="gameLink">CHESS™ - A COMPLETE FAILURE</a><br>
+            <div class="gameDesc">
+              This was supposed to be chess. It's not. Pieces don't move right. The code is held together with duct tape and prayer. But hey, you clicked on it, so that's on you. Should've gone to chess.com like a normal person instead of some random brutalist imageboard clone expecting a functional game. What were you thinking? This is /gitl/, not fucking Silicon Valley. We build broken shit here and you deal with it.<br>
+              <br>
+              <span class="quote">&gt;glitchy CRT aesthetic (read: broken CSS)</span><br>
+              <span class="quote">&gt;procedural audio (read: annoying beeps)</span><br>
+              <span class="quote">&gt;dramatic text effects (that don't work half the time)</span><br>
+              <span class="quote">&gt;mfw you expected a working chess game on an anonymous imageboard</span><br>
+              <br>
+              Not my problem. Should've lowered your expectations. This is what you get for free. No refunds. No support. No fucks given.
+            </div>
+          </blockquote>
+        </div>
+      </div>
+
+      <div class="postContainer replyContainer">
+        <div class="post reply">
+          <div class="postInfo">
+            <span class="nameBlock">
+              <span class="name">Anonymous</span>
+            </span>
+            <span class="dateTime">01/06/26(Mon)15:03:47</span>
+            <span class="postNum">
+              <a href="#p3">No.</a>
+              <a href="#p3">420691339</a>
+            </span>
+          </div>
+          <blockquote class="postMessage">
+            <span class="quote">&gt;&gt;420691337</span><br>
+            <a href="chess3d/index.html" class="gameLink">/chess3d/ - 3D CHESS ANONYMOUS EDITION</a><br>
+            <div class="gameDesc">
+              Imageboard-themed 3D chess. Pieces explode into particles. Three color schemes (Yotsuba/Futaba). AI that's either <a href="https://en.wikipedia.org/wiki/Minimax" target="_blank" class="wikiEgg">competent</a> or eating crayons. Chaos mode exists but you weren't warned properly. <b>No refunds.</b><br>
+              <br>
+              <span class="quote">&gt;full chess rules + en passant</span><br>
+              <span class="quote">&gt;random promotions</span><br>
+              <span class="quote">&gt;glitchy staunton pieces</span><br>
+              <span class="quote">&gt;procedural SFX</span><br>
+              <span class="quote">&gt;mfw the AI <a href="https://en.wikipedia.org/wiki/Zugzwang" target="_blank" class="wikiEgg">zugzwangs</a> itself</span>
+            </div>
+          </blockquote>
+        </div>
+      </div>
+
+      <div class="postContainer replyContainer">
+        <div class="post reply">
+          <div class="postInfo">
+            <span class="nameBlock">
+              <span class="name">Anonymous</span>
+            </span>
+            <span class="dateTime">01/06/26(Mon)16:28:13</span>
+            <span class="postNum">
+              <a href="#p4">No.</a>
+              <a href="#p4">420691340</a>
+            </span>
+          </div>
+          <blockquote class="postMessage">
+            <span class="quote">&gt;&gt;420691337</span><br>
+            <a href="mancala/index.html" class="gameLink">Traditional Mancala</a><br>
+            <div class="gameDesc">
+              Play the ancient stone-counting game. Challenge a 4-level AI opponent or compete with a friend. Features completely unconvincing <a href="https://en.wikipedia.org/wiki/Wabi-sabi" target="_blank" class="wikiEgg">Japanese aesthetic</a>, some sort of animations, and synthesized audio.<br>
+              <br>
+              <span class="quote">&gt;2-player or AI</span><br>
+              <span class="quote">&gt;4 difficulty levels</span><br>
+              <span class="quote">&gt;touch &amp; mouse</span><br>
+              <span class="quote">&gt;tfw you get <a href="https://en.wikipedia.org/wiki/Kalah" target="_blank" class="wikiEgg">kalah'd</a> by the AI</span>
+            </div>
+          </blockquote>
+        </div>
+      </div>
+
+      <!-- Fireworks Extravaganza -->
+      <div class="postContainer replyContainer">
+        <div class="post reply">
+          <div class="postInfo">
+            <span class="nameBlock">
+              <span class="name">Anonymous</span>
+            </span>
+            <span class="dateTime">01/08/26(Wed)21:15:00</span>
+            <span class="postNum">
+              <a href="#p99">No.</a>
+              <a href="#p99">420691399</a>
+            </span>
+          </div>
+          <blockquote class="postMessage">
+            <span class="quote">&gt;&gt;420691337</span><br>
+            <a href="fireworks-view.html" class="gameLink" style="font-size:14pt;font-weight:bold;color:#ff0000;">🎆 FIREWORKS EXTRAVAGANZA 🎆</a><br>
+            <div class="gameDesc">
+              <b style="color:#ff0000;">NEW YEARS IS OVER BUT WHO GIVES A FUCK</b><br>
+              <br>
+              Five toggleable particle effects on pure canvas autism. Rockets that explode into 80-particle bursts. Sparklers raining from the sky. Random bursts. Fountains. Twinkling stars. All procedurally generated because I refuse to use image assets like a normal person.<br>
+              <br>
+              <span class="quote">&gt;windowed/fullscreen toggle</span><br>
+              <span class="quote">&gt;mobile-friendly controls</span><br>
+              <span class="quote">&gt;collapsible settings panel</span><br>
+              <span class="quote">&gt;9 adjustable parameters</span><br>
+              <span class="quote">&gt;localStorage persistence</span><br>
+              <span class="quote">&gt;additive particle blending</span><br>
+              <span class="quote">&gt;procedural audio synthesis</span><br>
+              <span class="quote">&gt;mfw people still use jQuery particle plugins in 2026</span><br>
+              <br>
+              <b>WARNING:</b> May cause epileptic seizures, existential dread, or appreciation for pure vanilla JavaScript. Not responsible for any of these outcomes. Click at your own risk.<br>
+              <br>
+              <i>Happy late New Years from the basement dweller who codes this shit at 3am</i>
+            </div>
+          </blockquote>
+        </div>
+      </div>
+
+      <!-- World Desserts Page -->
+      <div class="postContainer replyContainer">
+        <div class="post reply">
+          <div class="postInfo">
+            <span class="nameBlock">
+              <span class="name">Anonymous</span>
+            </span>
+            <span class="dateTime">01/11/26(Sat)00:46:00</span>
+            <span class="postNum">
+              <a href="#p100">No.</a>
+              <a href="#p100">420691400</a>
+            </span>
+          </div>
+          <blockquote class="postMessage">
+            <span class="quote">&gt;&gt;420691337</span><br>
+            <a href="world-desserts.html" class="gameLink">🍰 Desserts Around the World 🌍</a><br>
+            <div class="gameDesc">
+              <b>School Project Alert!</b><br>
+              <br>
+              A 9-year-old's journey through international desserts. Six sweet treats from across the globe: Dragon's Beard (China), Beaver Tails (Canada), Ice Cream (Everywhere), Mochi (Japan), Shaved Ice (Hawaii/Asia), and Rau Câu Vietnamese Jelly.<br>
+              <br>
+              <span class="quote">&gt;colorful gradient background</span><br>
+              <span class="quote">&gt;hover effects reveal dessert facts</span><br>
+              <span class="quote">&gt;3-column responsive grid</span><br>
+              <span class="quote">&gt;educational AND delicious</span><br>
+              <br>
+              Built with pure HTML/CSS because sometimes simplicity is the sweetest ingredient. No frameworks, no npm packages, just a kid learning web development one dessert at a time.
+            </div>
+          </blockquote>
+        </div>
+      </div>
+
+      <!-- Blackjack Game -->
+      <div class="postContainer replyContainer">
+        <div class="post reply">
+          <div class="postInfo">
+            <span class="nameBlock">
+              <span class="name">Anonymous</span>
+            </span>
+            <span class="dateTime">01/12/26(Sun)07:15:00</span>
+            <span class="postNum">
+              <a href="#p101">No.</a>
+              <a href="#p101">420691401</a>
+            </span>
+          </div>
+          <blockquote class="postMessage">
+            <span class="quote">&gt;&gt;420691337</span><br>
+            <a href="blackjack/index.html" class="gameLink" style="font-size:14pt;font-weight:bold;color:#ff0000;">🃏 BLACKJACK - THE HOUSE ALWAYS WINS 🃏</a><br>
+            <div class="gameDesc">
+              <b style="color:#ff0000;">THREE MODES OF DESTRUCTION</b><br>
+              <br>
+              This is blackjack but with the same chaos energy as the chess game. Because why should chess players have all the fun suffering?<br>
+              <br>
+              <b>AI Mode:</b> Play against an abusive AI dealer that will trash talk your every move. Your feelings will be hurt. The house always wins. Dealer is a psychopath.<br>
+              <br>
+              <b>2-Player Mode:</b> One browser. Two players. No backend. Maximum awkwardness. What are you going to do while waiting for your turn? Jerk each other off to a shrine of Dr. Pepper? This is objectively stupid and we know it.<br>
+              <br>
+              <b>Chaos Mode:</b> Cards shuffle mid-game. Scores are lies. Values are suggestions. The dealer cheats. Cards swap randomly. Gravity is optional. Math.exe has stopped working. The deck achieved sentience and unionized.<br>
+              <br>
+              <span class="quote">&gt;abusive AI with trash talk</span><br>
+              <span class="quote">&gt;toggleable chaos features</span><br>
+              <span class="quote">&gt;card gravity (they fall off the table)</span><br>
+              <span class="quote">&gt;wrong score calculation</span><br>
+              <span class="quote">&gt;dealer cheats in chaos mode</span><br>
+              <span class="quote">&gt;cards display wrong values</span><br>
+              <span class="quote">&gt;random card swaps</span><br>
+              <span class="quote">&gt;physics is a suggestion</span><br>
+              <span class="quote">&gt;mfw the deck is sentient</span><br>
+              <span class="quote">&gt;tfw you can't trust anything</span><br>
+              <br>
+              <b>WARNING:</b> The AI will hurt your feelings. The 2-player mode will make you question your life choices. Chaos mode will make you question reality itself. Not responsible for existential crises.<br>
+              <br>
+              <i>Remember: The house always wins. Except in chaos mode. Then nobody wins. Especially not your sanity.</i><br>
+              <br>
+              <b>DISCLAIMER:</b> This game was made at 3am fueled by Dr. Pepper and poor life decisions. The code is held together with duct tape and spite. I don't know why I made this. You don't know why you're playing it. We're all just passengers on this cursed ride.
+            </div>
+          </blockquote>
+        </div>
+      </div>
+
+      <!-- Reply roasting blackjack -->
+      <div class="postContainer replyContainer">
+        <div class="post reply">
+          <div class="postInfo">
+            <span class="nameBlock">
+              <span class="name">Anonymous</span>
+            </span>
+            <span class="dateTime">01/12/26(Sun)07:23:44</span>
+            <span class="postNum">
+              <a href="#p102">No.</a>
+              <a href="#p102">420691402</a>
+            </span>
+          </div>
+          <blockquote class="postMessage">
+            <span class="quote">&gt;&gt;420691401</span><br>
+            <span class="quote">&gt;the deck achieved sentience and unionized</span><br>
+            <br>
+            OP you need help<br>
+            professional help<br>
+            <br>
+            i played it for 2 hours
+          </blockquote>
+        </div>
+      </div>
+
+      <!-- OP responding -->
+      <div class="postContainer replyContainer">
+        <div class="post reply">
+          <div class="postInfo">
+            <span class="nameBlock">
+              <span class="name">Anonymous</span>
+              <span class="postertrip">## OP</span>
+            </span>
+            <span class="dateTime">01/12/26(Sun)07:31:12</span>
+            <span class="postNum">
+              <a href="#p103">No.</a>
+              <a href="#p103">420691403</a>
+            </span>
+          </div>
+          <blockquote class="postMessage">
+            <span class="quote">&gt;&gt;420691402</span><br>
+            yeah i know<br>
+            <br>
+            the worst part is i can't stop<br>
+            i have 4 more game ideas and they're all worse than this<br>
+            <br>
+            send help (or more dr pepper)
+          </blockquote>
+        </div>
+      </div>
+
+      <!-- Meta shitpost -->
+      <div class="postContainer replyContainer">
+        <div class="post reply">
+          <div class="postInfo">
+            <span class="nameBlock">
+              <span class="name">Anonymous</span>
+            </span>
+            <span class="dateTime">01/06/26(Mon)17:45:22</span>
+            <span class="postNum">
+              <a href="#p5">No.</a>
+              <a href="#p5">420691341</a>
+            </span>
+          </div>
+          <blockquote class="postMessage">
+            <span class="quote">&gt;&gt;420691337</span><br>
+            this is the most <a href="https://en.wikipedia.org/wiki/Brutalist_architecture" target="_blank" class="wikiEgg">brutalist</a> website I've seen since <a href="https://en.wikipedia.org/wiki/GeoCities" target="_blank" class="wikiEgg">geocities</a> died<br>
+            <br>
+            <span class="quote">&gt;no javascript frameworks</span><br>
+            <span class="quote">&gt;no bloat</span><br>
+            <span class="quote">&gt;just pure HTML autism</span><br>
+            <br>
+            based and <a href="https://en.wikipedia.org/wiki/Ted_Kaczynski" target="_blank" class="wikiEgg">tedpilled</a>
+          </blockquote>
+        </div>
+      </div>
+
+      <!-- OP self-deprecating -->
+      <div class="postContainer replyContainer">
+        <div class="post reply">
+          <div class="postInfo">
+            <span class="nameBlock">
+              <span class="name">Anonymous</span>
+              <span class="postertrip">## OP</span>
+            </span>
+            <span class="dateTime">01/12/26(Sun)08:14:55</span>
+            <span class="postNum">
+              <a href="#p104">No.</a>
+              <a href="#p104">420691404</a>
+            </span>
+          </div>
+          <blockquote class="postMessage">
+            <span class="quote">&gt;&gt;420691341</span><br>
+            thanks i hate it<br>
+            <br>
+            fun fact: i wrote most of this code by asking an AI "what's the worst possible way to implement this"<br>
+            and then i did exactly that<br>
+            <br>
+            the chess AI literally flips a coin to decide if it's going to play like stockfish or a drunk toddler<br>
+            the blackjack dealer's trash talk is unhinged<br>
+            mancala stones don't obey physics in chaos mode<br>
+            <br>
+            i'm not sorry<br>
+            okay i'm a little sorry<br>
+            mostly to myself for the 3am debugging sessions
+          </blockquote>
+        </div>
+      </div>
+
+      <!-- Anon roasting OP -->
+      <div class="postContainer replyContainer">
+        <div class="post reply">
+          <div class="postInfo">
+            <span class="nameBlock">
+              <span class="name">Anonymous</span>
+            </span>
+            <span class="dateTime">01/12/26(Sun)08:27:33</span>
+            <span class="postNum">
+              <a href="#p105">No.</a>
+              <a href="#p105">420691405</a>
+            </span>
+          </div>
+          <blockquote class="postMessage">
+            <span class="quote">&gt;&gt;420691404</span><br>
+            <span class="quote">&gt;i wrote most of this code by asking an AI</span><br>
+            <br>
+            jesus christ OP this is literally AI slop<br>
+            you should be ashamed<br>
+            <br>
+            ...why does it work so well though<br>
+            why am i still here<br>
+            why can't i stop playing the broken chess
+          </blockquote>
+        </div>
+      </div>
+
+      <!-- OP doubling down -->
+      <div class="postContainer replyContainer">
+        <div class="post reply">
+          <div class="postInfo">
+            <span class="nameBlock">
+              <span class="name">Anonymous</span>
+              <span class="postertrip">## OP</span>
+            </span>
+            <span class="dateTime">01/12/26(Sun)08:35:01</span>
+            <span class="postNum">
+              <a href="#p106">No.</a>
+              <a href="#p106">420691406</a>
+            </span>
+          </div>
+          <blockquote class="postMessage">
+            <span class="quote">&gt;&gt;420691405</span><br>
+            it's not AI slop if i specifically asked for chaos and suffering<br>
+            <br>
+            it's AI-assisted shitposting<br>
+            there's a difference<br>
+            <br>
+            regular AI slop: "create a professional chess website"<br>
+            result: boring corporate garbage<br>
+            <br>
+            my approach: "make chess but the pieces are sentient and hate you"<br>
+            result: this cursed website<br>
+            <br>
+            i'm playing 4D chess while everyone else is playing regular chess<br>
+            (my chess doesn't even work properly which proves my point)
+          </blockquote>
+        </div>
+      </div>
+
+      <!-- Status post -->
+      <div class="postContainer replyContainer">
+        <div class="post reply">
+          <div class="postInfo">
+            <span class="nameBlock">
+              <span class="name">Anonymous</span>
+            </span>
+            <span class="dateTime">01/06/26(Mon)18:12:56</span>
+            <span class="postNum">
+              <a href="#p6">No.</a>
+              <a href="#p6">420691342</a>
+            </span>
+          </div>
+          <blockquote class="postMessage">
+            <b>status:</b> quiet build<br>
+            <b>signal:</b> intermittent<br>
+            <b>output:</b> soon (when it behaves)<br>
+            <br>
+            <span class="quote">&gt;mods are asleep, post <a href="sinks.html" class="wikiEgg">sinks</a></span><br>
+            <span class="quote">&gt;mfw when the <a href="https://en.wikipedia.org/wiki/Paperclip_maximizer" target="_blank" class="wikiEgg">paperclip maximizer</a> becomes sentient</span><br>
+            <span class="quote">&gt;tfw you need <a href="claude.html" class="wikiEgg">trusted counsel</a> before shipping</span><br>
+            <span class="quote">&gt;check em <a href="https://en.wikipedia.org/wiki/Dubs" target="_blank" class="wikiEgg">dubs</a> decides next project</span>
+          </blockquote>
+        </div>
+      </div>
+
+      <!-- Easter egg mega post -->
+      <div class="postContainer replyContainer">
+        <div class="post reply">
+          <div class="postInfo">
+            <span class="nameBlock">
+              <span class="name">Anonymous</span>
+            </span>
+            <span class="dateTime">01/06/26(Mon)19:33:33</span>
+            <span class="postNum">
+              <a href="#p7">No.</a>
+              <a href="#p7">420691343</a>
+            </span>
+          </div>
+          <blockquote class="postMessage">
+            <span class="quote">&gt;&gt;420691342</span><br>
+            holy shit those <a href="https://en.wikipedia.org/wiki/Repeating_digits" target="_blank" class="wikiEgg">trips</a><br>
+            <br>
+            <span class="quote">&gt;wake up</span><br>
+            <span class="quote">&gt;check /gitl/</span><br>
+            <span class="quote">&gt;OP is building <a href="https://en.wikipedia.org/wiki/GLaDOS" target="_blank" class="wikiEgg">AGI</a> in his basement</span><br>
+            <span class="quote">&gt;it only wants to play <a href="https://en.wikipedia.org/wiki/Mancala" target="_blank" class="wikiEgg">mancala</a></span><br>
+            <span class="quote">&gt;<a href="https://en.wikipedia.org/wiki/Chinese_room" target="_blank" class="wikiEgg">mfw</a></span><br>
+            <br>
+            i've been lurking since <a href="https://en.wikipedia.org/wiki/2006" target="_blank" class="wikiEgg">2006</a> and this is the most based thread on /gitl/<br>
+            <br>
+            protip: click the <a href="https://en.wikipedia.org/wiki/Question_mark" target="_blank" class="wikiEgg">?</a> in the navbar for random <a href="https://en.wikipedia.org/wiki/Wikipedia" target="_blank" class="wikiEgg">autism</a>
+          </blockquote>
+        </div>
+      </div>
+
+      <!-- SAGE post -->
+      <div class="postContainer replyContainer">
+        <div class="post reply">
+          <div class="postInfo">
+            <span class="nameBlock">
+              <span class="name">Anonymous</span>
+            </span>
+            <span class="dateTime">01/06/26(Mon)20:01:11</span>
+            <span class="postNum">
+              <a href="#p8">No.</a>
+              <a href="#p8">420691344</a>
+            </span>
+          </div>
+          <blockquote class="postMessage">
+            sage<br>
+            <br>
+            this thread is <a href="https://en.wikipedia.org/wiki/Cancer" target="_blank" class="wikiEgg">cancer</a><br>
+            <br>
+            <span class="quote">&gt;implying anyone cares about your llm experiments</span><br>
+            <span class="quote">&gt;implying this isn't just another <a href="https://en.wikipedia.org/wiki/Vaporware" target="_blank" class="wikiEgg">vaporware</a> project</span><br>
+            <span class="quote">&gt;implying you're not a <a href="https://en.wikipedia.org/wiki/Script_kiddie" target="_blank" class="wikiEgg">script kiddie</a></span><br>
+            <br>
+            <i>(you)s not guaranteed</i>
+          </blockquote>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="boardFooter">
+    - <a href="https://en.wikipedia.org/wiki/Imageboard" target="_blank">imageboard</a> -
+    <a href="https://en.wikipedia.org/wiki/Anonymous_(group)" target="_blank">anonymous</a> -
+    <span id="wikiLink2" class="wikiEgg"><a href="#" target="_blank">???</a></span> -<br>
+    All trademarks and copyrights on this page are owned by their respective parties.<br>
+    Images uploaded are the responsibility of the Poster. Comments are owned by the Poster.<br>
+    <br>
+    <span style="font-size:7pt;">
+      <a href="https://en.wikipedia.org/wiki/Rules_of_the_Internet" target="_blank" class="wikiEgg">rules 1 &amp; 2</a> ·
+      <a href="https://en.wikipedia.org/wiki/Lurker" target="_blank" class="wikiEgg">lurk moar</a> ·
+      <a href="https://en.wikipedia.org/wiki/Triforce" target="_blank" class="wikiEgg">new███ cant triforce</a>
+    </span>
+    <br><br>
+    <span style="font-size:8pt; opacity:0.7;">
+      This site is NOT affiliated with Anonymous, 4chan, or any human organization for that matter.<br>
+      All content is bad parody. OP has and always will be a ███.<br>
+      If you're offended, that's your problem. Close the tab.<br>
+      <br>
+      <b>LEGAL DISCLAIMER:</b> This website was coded at 3am by someone who Googles "how to center a div" every single time.<br>
+      The games are held together with duct tape, spite, and Dr. Pepper.<br>
+      No refunds. No support. No regrets (okay maybe some regrets).<br>
+      If the chess AI beats you it's because you're bad, not because it's good.<br>
+      If the blackjack dealer hurts your feelings, that's the point.<br>
+      If chaos mode breaks reality, working as intended.<br>
+      <br>
+      Made with ❌ (not love, just spite and caffeine)<br>
+      Powered by poor life decisions and AI-assisted shitposting<br>
+      <br>
+      <i>"I can't believe you've done this" - everyone who visits this site</i><br>
+      <i>"Why won't the stones obey physics" - mancala players</i><br>
+      <i>"The dealer called me a statistical anomaly" - blackjack players</i><br>
+      <i>"My rook moved diagonally and I don't know why" - chess players</i>
+    </span>
+  </div>
+
+  <!-- Hidden rules overlay -->
+  <div class="rulesOverlay" id="rulesOverlay">
+    <span class="closeRules" onclick="hideRules()">✕</span>
+    <h3 style="margin-bottom:10px;">/gitl/ - Rules</h3>
+    <ol style="margin-left:20px; line-height:1.6;">
+      <li>You do not talk about /gitl/</li>
+      <li>You DO NOT talk about /gitl/</li>
+      <li>No <a href="https://en.wikipedia.org/wiki/Spamming" target="_blank">spam</a> (jk there's no posting anyway)</li>
+      <li>The <a href="https://en.wikipedia.org/wiki/The_Cake_Is_a_Lie" target="_blank">cake</a> is a lie</li>
+      <li><a href="https://en.wikipedia.org/wiki/Lurker" target="_blank">Lurk moar</a> before posting</li>
+      <li>All <a href="https://en.wikipedia.org/wiki/Greentext" target="_blank">greentext</a> must be properly formatted</li>
+      <li>No arguing with <a href="https://en.wikipedia.org/wiki/Sysop" target="_blank">mods</a></li>
+      <li><a href="https://en.wikipedia.org/wiki/Sage_(software)" target="_blank">Sage</a> goes in all fields</li>
+      <li>???</li>
+      <li><a href="https://en.wikipedia.org/wiki/Profit_(economics)" target="_blank">PROFIT</a></li>
+    </ol>
+    <p style="margin-top:10px; font-size:8pt; font-style:italic;">
+      Remember: <a href="https://en.wikipedia.org/wiki/The_Internet" target="_blank">The internet</a> is serious business.
+    </p>
+  </div>
+
+  <script>
+    // Session storage check for splash (kept from original)
+    // Note: No splash in brutalist mode, but keeping sessionStorage functionality
+    if (sessionStorage.getItem("splashShown")) {
+      // Already shown
+    } else {
+      sessionStorage.setItem("splashShown", "true");
+    }
+
+    // Random Wikipedia easter eggs
+    const wikiArticles = [
+      'Turboencabulator',
+      'Buffalo_buffalo_Buffalo_buffalo_buffalo_buffalo_Buffalo_buffalo',
+      'List_of_unexplained_sounds',
+      'Emu_War',
+      'Phantom_time_hypothesis',
+      'Buttered_cat_paradox',
+      'Bread_and_butter_fly',
+      'Bielefeld_conspiracy',
+      'Eternal_September',
+      'Rubber_duck_debugging',
+      'Heisenbug',
+      'Scunthorpe_problem',
+      'Cargo_cult_programming',
+      'Magic_smoke',
+      'Yak_shaving',
+      'Hamster_wheel',
+      'Chewbacca_defense',
+      'Colorless_green_ideas_sleep_furiously',
+      'James_while_John_had_had_had_had_had_had_had_had_had_had_had_a_better_effect_on_the_teacher',
+      'List_of_lists_of_lists',
+      'Recursive_humor',
+      'XKCD',
+      'Fnord',
+      'Metasyntactic_variable',
+      'Rubber_duck_debugging',
+      'Leet',
+      'All_your_base_are_belong_to_us',
+      'Dancing_baby',
+      'Godwin%27s_law',
+      'Streisand_effect',
+      'Sealioning',
+      'Cunningham%27s_Law',
+      'Poe%27s_law',
+      'Murphy%27s_law',
+      'Hofstadter%27s_law',
+      'Parkinson%27s_law',
+      'Law_of_triviality',
+      'Dunning%E2%80%93Kruger_effect',
+      'Impostor_syndrome',
+      'Analysis_paralysis',
+      'Bike-shedding',
+      'Not_invented_here',
+      'Rubber_duck',
+      'Cargo_cult',
+      'Snake_oil',
+      'Vaporware',
+      'Abandonware',
+      'Crippleware',
+      'Donationware',
+      'Nagware',
+      'Shovelware',
+      'Bloatware',
+      'Wetware_(brain)',
+      'Meatware',
+      'Firmware',
+      'Lavabit',
+      'Stuxnet',
+      'Fork_bomb',
+      'Zip_bomb',
+      'Logic_bomb',
+      'Billion_laughs_attack',
+      'Pentium_FDIV_bug',
+      'Year_2000_problem',
+      'Year_2038_problem',
+      'Busy_beaver',
+      'Halting_problem',
+      'Traveling_salesman_problem',
+      'P_versus_NP_problem',
+      'Boolean_satisfiability_problem',
+      'Knapsack_problem',
+      'Dining_philosophers_problem',
+      'Sleeping_barber_problem',
+      'Byzantine_fault',
+      'CAP_theorem',
+      'ACID',
+      'Two_Generals%27_Problem',
+      'Consensus_(computer_science)',
+      'Raft_(algorithm)',
+      'Paxos_(computer_science)',
+      'Blockchain',
+      'Merkle_tree',
+      'Hash_tree',
+      'Bloom_filter',
+      'Skip_list',
+      'Trie',
+      'Rope_(data_structure)',
+      'Dancing_Links',
+      'XOR_linked_list',
+      'Circular_buffer',
+      'Ring_buffer',
+      'Self-balancing_binary_search_tree',
+      'Red%E2%80%93black_tree',
+      'AVL_tree',
+      'B-tree',
+      'Splay_tree',
+      'Treap',
+      'Heap_(data_structure)',
+      'Fibonacci_heap',
+      'Pairing_heap',
+      'Priority_queue',
+      'Disjoint-set_data_structure',
+      'Fenwick_tree',
+      'Segment_tree',
+      'Suffix_tree',
+      'Suffix_array',
+      'Burrows%E2%80%93Wheeler_transform',
+      'LZ77_and_LZ78',
+      'Huffman_coding',
+      'Run-length_encoding',
+      'Delta_encoding'
+    ];
+
+    function getRandomWiki() {
+      const article = wikiArticles[Math.floor(Math.random() * wikiArticles.length)];
+      return 'https://en.wikipedia.org/wiki/' + article;
+    }
+
+    // Set random wiki links on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      const wikiLink1 = document.getElementById('wikiLink1');
+      const wikiLink2 = document.getElementById('wikiLink2');
+
+      if (wikiLink1) {
+        wikiLink1.href = getRandomWiki();
+        wikiLink1.title = 'Random Wikipedia Article';
+      }
+
+      if (wikiLink2) {
+        const link = wikiLink2.querySelector('a');
+        if (link) {
+          link.href = getRandomWiki();
+          link.title = 'Random Wikipedia Article';
+        }
+      }
+
+      // Rotate wiki links every 10 seconds
+      setInterval(function() {
+        if (wikiLink1) wikiLink1.href = getRandomWiki();
+        if (wikiLink2) {
+          const link = wikiLink2.querySelector('a');
+          if (link) link.href = getRandomWiki();
+        }
+      }, 10000);
+    });
+
+    // Rules overlay functions
+    function showRules() {
+      document.getElementById('rulesOverlay').classList.add('show');
+    }
+
+    function hideRules() {
+      document.getElementById('rulesOverlay').classList.remove('show');
+    }
+
+    // Close rules on click outside
+    document.addEventListener('click', function(e) {
+      const overlay = document.getElementById('rulesOverlay');
+      if (e.target === overlay) {
+        hideRules();
+      }
+    });
+  </script>
+<script data-goatcounter="https://guyintheloop.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
