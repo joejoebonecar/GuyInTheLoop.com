@@ -702,12 +702,14 @@
     }
 
     /* Theme dropdown */
-    .themeDropdown {
+    .themeDropdown,
+    .gamesDropdown {
       display: inline-block;
       position: relative;
     }
 
-    .themeDropdown .dropdownContent {
+    .themeDropdown .dropdownContent,
+    .gamesDropdown .dropdownContent {
       display: none;
       position: absolute;
       background: var(--post-bg);
@@ -720,7 +722,8 @@
       margin-top: 2px;
     }
 
-    .themeDropdown:hover .dropdownContent {
+    .themeDropdown:hover .dropdownContent,
+    .gamesDropdown:hover .dropdownContent {
       display: block;
     }
 
@@ -759,7 +762,8 @@
     }
 
     @media (max-width: 520px) {
-      .themeDropdown .dropdownContent {
+      .themeDropdown .dropdownContent,
+      .gamesDropdown .dropdownContent {
         min-width: 180px;
         font-size: 8pt;
       }
@@ -824,6 +828,22 @@
         <a href="#" onclick="setTheme('deuteranopia'); return false;" data-theme-option="deuteranopia">Deuteranopia</a>
         <a href="#" onclick="setTheme('tritanopia'); return false;" data-theme-option="tritanopia">Tritanopia</a>
         <a href="#" onclick="setTheme('achromatopsia'); return false;" data-theme-option="achromatopsia">Achromatopsia</a>
+      </div>
+    </span>]
+    [<span class="gamesDropdown">
+      <a href="#" onclick="return false;">Games ▼</a>
+      <div class="dropdownContent">
+        <span class="theme-category">── Games ──</span>
+        <a href="chess/index.html">♟️ Chess</a>
+        <a href="chess3d/index.html">♟️ Chess 3D</a>
+        <a href="mancala/index.html">⚪ Mancala</a>
+        <a href="blackjack/index.html">🃏 Blackjack</a>
+        <span class="theme-category">── Pages ──</span>
+        <a href="fireworks-view.html">🎆 Fireworks</a>
+        <a href="world-desserts.html">🍰 World Desserts</a>
+        <a href="sinks.html">🚰 Sinks</a>
+        <a href="claude.html">🤖 Claude</a>
+        <a href="physics.html" style="color: #ff0000; font-weight: bold;">⚔️ /physics/</a>
       </div>
     </span>]
     [<a href="physics.html" style="color: #ff0000; font-weight: bold;">⚔️ /physics/</a>]
