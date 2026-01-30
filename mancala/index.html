@@ -13,7 +13,28 @@
       --ui-bg: rgba(240, 224, 214, 0.95);
       --text: #000;
       --border: #b7c5d9;
+      --link: #34345c;
+      --link-hover: #dd0000;
     }
+    [data-theme="yotsuba"]{--bg:#f0e0d6;--ui-bg:rgba(240,192,214,0.95);--text:#800000;--border:#d9bfb7;--link:#34345c;--link-hover:#dd0000}
+    [data-theme="yotsuba-b"]{--bg:#f0e0d6;--ui-bg:rgba(214,186,208,0.95);--text:#800000;--border:#d9bfb7;--link:#34345c;--link-hover:#dd0000}
+    [data-theme="tomorrow"]{--bg:#1d1f21;--ui-bg:rgba(40,42,46,0.95);--text:#c5c8c6;--border:#4d4d4d;--link:#81a2be;--link-hover:#cc6666}
+    [data-theme="photon"]{--bg:#ffffff;--ui-bg:rgba(245,245,245,0.95);--text:#333333;--border:#cccccc;--link:#2b5797;--link-hover:#d00000}
+    [data-theme="futaba"]{--bg:#eef2ff;--ui-bg:rgba(240,224,214,0.95);--text:#000000;--border:#b7c5d9;--link:#34345c;--link-hover:#dd0000}
+    [data-theme="protanopia"]{--bg:#e8e8d0;--ui-bg:rgba(240,240,224,0.95);--text:#4a4a00;--border:#b0b090;--link:#0066cc;--link-hover:#0088ee}
+    [data-theme="deuteranopia"]{--bg:#f0e8f0;--ui-bg:rgba(245,240,245,0.95);--text:#4a004a;--border:#c0b0c0;--link:#0066cc;--link-hover:#cc6600}
+    [data-theme="tritanopia"]{--bg:#f0e8e8;--ui-bg:rgba(245,240,240,0.95);--text:#4a0000;--border:#d0a0a0;--link:#cc0066;--link-hover:#ff0000}
+    [data-theme="achromatopsia"]{--bg:#ffffff;--ui-bg:rgba(240,240,240,0.95);--text:#000000;--border:#808080;--link:#404040;--link-hover:#000000}
+    [data-theme="psychedelic"]{--bg:#ff00ff;--ui-bg:rgba(255,110,199,0.95);--text:#00ff00;--border:#ffff00;--link:#7b68ee;--link-hover:#ff1493}
+    [data-theme="psychedelic-dark"]{--bg:#0a0014;--ui-bg:rgba(26,0,51,0.95);--text:#ff00ff;--border:#ff00ff;--link:#00ffff;--link-hover:#ff1493}
+    [data-theme="vaporwave"]{--bg:#1a1a2e;--ui-bg:rgba(22,33,62,0.95);--text:#ff71ce;--border:#ff71ce;--link:#01cdfe;--link-hover:#ff71ce}
+    [data-theme="matrix"]{--bg:#000000;--ui-bg:rgba(10,10,10,0.95);--text:#00ff00;--border:#003300;--link:#00cc00;--link-hover:#00ff00}
+    [data-theme="cyberpunk"]{--bg:#0d0d0d;--ui-bg:rgba(26,26,26,0.95);--text:#fcee0a;--border:#ff2a6d;--link:#05d9e8;--link-hover:#ff2a6d}
+    [data-theme="sunset"]{--bg:#2c1810;--ui-bg:rgba(61,35,24,0.95);--text:#ffd4a3;--border:#ff6b35;--link:#f7c59f;--link-hover:#ff9f1c}
+    [data-theme="ocean"]{--bg:#0a1628;--ui-bg:rgba(17,34,64,0.95);--text:#a8d8ea;--border:#64b5f6;--link:#80deea;--link-hover:#4dd0e1}
+    [data-theme="forest"]{--bg:#1a2f1a;--ui-bg:rgba(45,74,45,0.95);--text:#c8e6c9;--border:#66bb6a;--link:#a5d6a7;--link-hover:#81c784}
+    [data-theme="midnight"]{--bg:#0d1b2a;--ui-bg:rgba(27,38,59,0.95);--text:#e0e1dd;--border:#778da9;--link:#90caf9;--link-hover:#64b5f6}
+
     body { margin: 0; overflow: hidden; background: var(--bg); font-family: monospace; color: var(--text); }
 
     /* UI Overlay */
@@ -277,6 +298,14 @@
       80% { opacity: 1; transform: translateY(0); }
       100% { opacity: 0; transform: translateY(-20px); }
     }
+
+    .themeDropdown{display:inline-block;position:relative}
+    .themeDropdown .dropdownContent{display:none;position:absolute;background:var(--ui-bg);border:1px solid var(--border);min-width:180px;z-index:1000;font-size:11px;bottom:100%;left:0;margin-bottom:2px;max-height:300px;overflow-y:auto}
+    .themeDropdown:hover .dropdownContent{display:block}
+    .dropdownContent a{color:var(--text);padding:6px 10px;text-decoration:none;display:block}
+    .dropdownContent a:hover{background:rgba(0,0,0,0.1)}
+    .dropdownContent a.active{background:rgba(0,0,0,0.15);font-weight:bold}
+    .theme-category{display:block;padding:6px 10px;font-size:9px;color:var(--text);opacity:0.6;text-align:center;background:rgba(0,0,0,0.05);border-bottom:1px solid var(--border)}
   </style>
 </head>
 <body>
@@ -299,8 +328,35 @@
         <button id="btn-restart">restart</button>
         <button id="btn-sound">sound: on</button>
       </div>
-      <div style="margin-top: 8px; font-size: 11px;">
-        <a href="../index.html" style="color: #34345c; text-decoration: none;">← back to /gitl/</a>
+      <div style="margin-top: 8px; font-size: 11px; display: flex; gap: 12px; justify-content: center; align-items: center;">
+        <span class="themeDropdown">
+          <a href="#" onclick="return false;" style="color: var(--link); text-decoration: none;">Themes ▲</a>
+          <div class="dropdownContent">
+            <span class="theme-category">── Classic ──</span>
+            <a href="#" onclick="setTheme('yotsuba'); return false;" data-theme-option="yotsuba">Yotsuba</a>
+            <a href="#" onclick="setTheme('yotsuba-b'); return false;" data-theme-option="yotsuba-b">Yotsuba B</a>
+            <a href="#" onclick="setTheme('tomorrow'); return false;" data-theme-option="tomorrow">Tomorrow</a>
+            <a href="#" onclick="setTheme('photon'); return false;" data-theme-option="photon">Photon</a>
+            <a href="#" onclick="setTheme('futaba'); return false;" data-theme-option="futaba">Futaba</a>
+            <span class="theme-category">── Psychedelic ──</span>
+            <a href="#" onclick="setTheme('psychedelic'); return false;" data-theme-option="psychedelic">Psychedelic</a>
+            <a href="#" onclick="setTheme('psychedelic-dark'); return false;" data-theme-option="psychedelic-dark">Psychedelic Dark</a>
+            <a href="#" onclick="setTheme('vaporwave'); return false;" data-theme-option="vaporwave">Vaporwave</a>
+            <a href="#" onclick="setTheme('matrix'); return false;" data-theme-option="matrix">Matrix</a>
+            <a href="#" onclick="setTheme('cyberpunk'); return false;" data-theme-option="cyberpunk">Cyberpunk</a>
+            <span class="theme-category">── Nature ──</span>
+            <a href="#" onclick="setTheme('sunset'); return false;" data-theme-option="sunset">Sunset</a>
+            <a href="#" onclick="setTheme('ocean'); return false;" data-theme-option="ocean">Ocean</a>
+            <a href="#" onclick="setTheme('forest'); return false;" data-theme-option="forest">Forest</a>
+            <a href="#" onclick="setTheme('midnight'); return false;" data-theme-option="midnight">Midnight</a>
+            <span class="theme-category">── Accessibility ──</span>
+            <a href="#" onclick="setTheme('protanopia'); return false;" data-theme-option="protanopia">Protanopia</a>
+            <a href="#" onclick="setTheme('deuteranopia'); return false;" data-theme-option="deuteranopia">Deuteranopia</a>
+            <a href="#" onclick="setTheme('tritanopia'); return false;" data-theme-option="tritanopia">Tritanopia</a>
+            <a href="#" onclick="setTheme('achromatopsia'); return false;" data-theme-option="achromatopsia">Achromatopsia</a>
+          </div>
+        </span>
+        <a href="../index.html" style="color: var(--link); text-decoration: none;">← back to /gitl/</a>
       </div>
     </div>
   </div>
@@ -1550,5 +1606,24 @@ document.getElementById('btn-sound').onclick = (e) => {
   </div>
 </div>
 
+<script>
+function setTheme(themeName) {
+  document.documentElement.setAttribute('data-theme', themeName);
+  localStorage.setItem('gitl-theme', themeName);
+  document.querySelectorAll('.dropdownContent a').forEach(link => {
+    if (link.getAttribute('data-theme-option') === themeName) {
+      link.classList.add('active');
+    } else {
+      link.classList.remove('active');
+    }
+  });
+}
+document.addEventListener('DOMContentLoaded', function() {
+  const savedTheme = localStorage.getItem('gitl-theme');
+  if (savedTheme) {
+    setTheme(savedTheme);
+  }
+});
+</script>
 </body>
 </html>
